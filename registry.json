@@ -60,7 +60,7 @@
     "category": "Staking"
   },
   "XPoo1Fx6KNgeAzFcq2dPTo95bWGUSj5KdPVqYj9CZux": {
-    "name": "Validator Staking (SPL Stake Pool)",
+    "name": "Validator Stake Pool",
     "category": "Staking",
     "infrastructure": true
   },
@@ -80,5 +80,15 @@
   "6r9HZKQRhDfNnZM4m6TgkcK82Bt6EA1q2Ck9VNWoTnGm": {
     "name": "Capy Warriors",
     "category": "NFT"
+  },
+  "Stake11111111111111111111111111111111111111": {
+    "name": "Native Stake Program",
+    "category": "Staking",
+    "infrastructure": true
+  },
+  "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf": {
+    "name": "Squads Protocol",
+    "category": "Utility",
+    "website": "https://squads.so"
   }
 }
