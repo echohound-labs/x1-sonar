@@ -60,7 +60,7 @@
     "category": "Staking"
   },
   "XPoo1Fx6KNgeAzFcq2dPTo95bWGUSj5KdPVqYj9CZux": {
-    "name": "SPL Stake Pool",
+    "name": "Validator Staking (SPL Stake Pool)",
     "category": "Staking",
     "infrastructure": true
   },
