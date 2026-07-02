@@ -1,0 +1,17 @@
+# /etc/systemd/system/sonar-indexer.service
+[Unit]
+Description=X1 Sonar block indexer
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=bots
+WorkingDirectory=/home/bots/x1-sonar
+ExecStart=/usr/bin/node indexer.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

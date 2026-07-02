@@ -1,0 +1,17 @@
+{
+  "name": "x1-sonar",
+  "version": "1.0.0",
+  "description": "",
+  "main": "indexer.js",
+  "scripts": {
+    "test": "node test-extract.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@solana/web3.js": "^1.98.4",
+    "dotenv": "^17.4.2",
+    "pg": "^8.22.0"
+  }
+}
