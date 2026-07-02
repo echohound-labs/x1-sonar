@@ -10,6 +10,7 @@ const COLS = [
   { key: "rank", label: "#", left: false },
   { key: "program_id", label: "Program", left: true },
   { key: "category", label: "Category", left: true },
+  { key: "upgrade_state", label: "Upgrade", left: true },
   { key: "sonar_score", label: "Sonar Score", left: false },
   { key: "tx_count_24h", label: "TX 24h", left: false },
   { key: "tx_count_7d", label: "TX 7d", left: false },
@@ -82,6 +83,7 @@ export default function Home() {
   const [sort, setSort] = useState({ key: "sonar_score", dir: "desc" });
   const [copied, setCopied] = useState(null);
   const [cat, setCat] = useState("All");
+  const [appsOnly, setAppsOnly] = useState(false);
 
   async function load() {
     try {
@@ -111,7 +113,11 @@ export default function Home() {
 
   const rows = useMemo(() => {
     if (!programs) return null;
-    const arr = programs.filter((p) => cat === "All" || (p.category || "Unknown") === cat);
+    const arr = programs.filter(
+      (p) =>
+        (cat === "All" || (p.category || "Unknown") === cat) &&
+        (!appsOnly || !p.infrastructure)
+    );
     const { key, dir } = sort;
     arr.sort((a, b) => {
       let av = a[key], bv = b[key];
@@ -122,7 +128,7 @@ export default function Home() {
       return 0;
     });
     return arr;
-  }, [programs, sort, cat]);
+  }, [programs, sort, cat, appsOnly]);
 
   const maxScore = useMemo(
     () => (programs || []).reduce((m, p) => Math.max(m, Number(p.sonar_score) || 0), 1),
@@ -185,15 +191,20 @@ export default function Home() {
           : "acquiring signal…"}
       </div>
 
-      {cats.length > 2 && (
-        <div className="pills">
-          {cats.map((c) => (
-            <button key={c} className={`pill ${cat === c ? "on" : ""}`} onClick={() => setCat(c)}>
-              {c}
-            </button>
-          ))}
-        </div>
-      )}
+      <div className="pills">
+        {cats.map((c) => (
+          <button key={c} className={`pill ${cat === c ? "on" : ""}`} onClick={() => setCat(c)}>
+            {c}
+          </button>
+        ))}
+        <button
+          className={`pill toggle ${appsOnly ? "on" : ""}`}
+          onClick={() => setAppsOnly((v) => !v)}
+          title="Hide standard infrastructure programs (Token, ATA, Memo, Metaplex)"
+        >
+          {appsOnly ? "◉" : "○"} Apps only
+        </button>
+      </div>
 
       <div className="board">
         {error && !programs ? (
@@ -245,6 +256,17 @@ export default function Home() {
                     <span className={`cat cat-${(p.category || "Unknown").toLowerCase()}`}>
                       {p.category || "Unknown"}
                     </span>
+                  </td>
+                  <td className="left" data-l="Upgrade">
+                    {p.infrastructure ? (
+                      <span className="up up-system">SYSTEM</span>
+                    ) : p.upgrade_state === "locked" ? (
+                      <span className="up up-locked">LOCKED</span>
+                    ) : p.upgrade_state === "upgradeable" ? (
+                      <span className="up up-open">UPGRADEABLE</span>
+                    ) : (
+                      <span className="dim">—</span>
+                    )}
                   </td>
                   <td data-l="Sonar Score">
                     <span className="scorecell">

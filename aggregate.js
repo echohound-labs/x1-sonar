@@ -12,8 +12,54 @@ const { Pool } = require('pg');
 
 const DB_URL = process.env.DATABASE_URL;
 const RETENTION_DAYS = parseInt(process.env.RETENTION_DAYS || '8', 10);
+const RPC = process.env.X1_RPC_URL || 'http://localhost:8899';
 
 const pool = new Pool({ connectionString: DB_URL });
+
+const UPGRADEABLE_LOADER = 'BPFLoaderUpgradeab1e11111111111111111111111';
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// base58 (no deps) — for decoding programdata / authority pubkeys
+const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+function b58encode(buf) {
+  let n = 0n;
+  for (const b of buf) n = n * 256n + BigInt(b);
+  let s = '';
+  while (n > 0n) { s = B58[Number(n % 58n)] + s; n /= 58n; }
+  for (const b of buf) { if (b === 0) s = '1' + s; else break; }
+  return s;
+}
+
+let rpcId = 0;
+async function rpc(method, params) {
+  const res = await fetch(RPC, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', id: ++rpcId, method, params }),
+  });
+  const j = await res.json();
+  if (j.error) throw new Error(`${method}: ${j.error.message}`);
+  return j.result;
+}
+
+// Read a program's upgrade state: 'locked' | 'upgradeable' | null.
+// Returns { state, authority }. Non-upgradeable-loader programs → null state.
+async function readUpgradeState(programId) {
+  const acct = await rpc('getAccountInfo', [programId, { encoding: 'base64' }]);
+  if (!acct || !acct.value || acct.value.owner !== UPGRADEABLE_LOADER) {
+    return { state: null, authority: null };
+  }
+  const progBuf = Buffer.from(acct.value.data[0], 'base64');
+  const programData = b58encode(progBuf.subarray(4, 36));
+  const pd = await rpc('getAccountInfo', [programData, { encoding: 'base64' }]);
+  if (!pd || !pd.value) return { state: null, authority: null };
+  const buf = Buffer.from(pd.value.data[0], 'base64');
+  // ProgramData: tag u32 + slot u64 + option u8 (byte 12) + authority 32
+  const hasAuth = buf[12] === 1;
+  return hasAuth
+    ? { state: 'upgradeable', authority: b58encode(buf.subarray(13, 45)) }
+    : { state: 'locked', authority: null };
+}
 
 async function aggregate() {
   const client = await pool.connect();
@@ -83,9 +129,10 @@ async function aggregate() {
         if (programId.startsWith('_') || !meta || !meta.name) continue;
         await client.query(
           `UPDATE sonar.programs
-           SET name = $2, category = COALESCE($3, category), website = COALESCE($4, website), verified = TRUE
+           SET name = $2, category = COALESCE($3, category), website = COALESCE($4, website),
+               infrastructure = $5, verified = TRUE
            WHERE program_id = $1`,
-          [programId, meta.name, meta.category || null, meta.website || null]
+          [programId, meta.name, meta.category || null, meta.website || null, meta.infrastructure === true]
         );
       }
     } catch (e) {
@@ -112,7 +159,31 @@ async function aggregate() {
     client.release();
   }
 
-  // 4. Prune outside the main transaction (can be a big delete)
+  // 5. Refresh upgrade state per program (RPC, outside the txn).
+  //    Only re-reads programs missing state or stale >6h — cheap, self-healing.
+  try {
+    const { rows: need } = await pool.query(`
+      SELECT program_id FROM sonar.programs
+      WHERE upgrade_state IS NULL OR upgrade_state = 'upgradeable'
+      ORDER BY sonar_score DESC LIMIT 50
+    `);
+    for (const { program_id } of need) {
+      try {
+        const { state, authority } = await readUpgradeState(program_id);
+        await pool.query(
+          `UPDATE sonar.programs SET upgrade_state = $2, upgrade_authority = $3 WHERE program_id = $1`,
+          [program_id, state, authority]
+        );
+        await sleep(120); // pace RPC — validator-safe
+      } catch (e) {
+        // leave state as-is on a transient error
+      }
+    }
+  } catch (e) {
+    console.error('[sonar-aggregate] upgrade-state refresh skipped:', e.message);
+  }
+
+  // 6. Prune outside the main transaction (can be a big delete)
   const pruned = await pool.query(
     `DELETE FROM sonar.interactions WHERE ts < NOW() - ($1 || ' days')::interval`,
     [RETENTION_DAYS]

@@ -307,3 +307,17 @@ footer a:hover { color: var(--ping); }
 .cat-utility, .cat-unknown { color: var(--muted); }
 
 .spark { display: inline-block; vertical-align: middle; opacity: 0.9; }
+
+/* ── Upgrade / governance badges (step 7) ───────── */
+.pill.toggle { margin-left: auto; }
+.up {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  border-radius: 3px;
+  padding: 1px 7px;
+  border: 1px solid transparent;
+}
+.up-locked { color: var(--ping); border-color: var(--ping-dim); }
+.up-open { color: var(--amber); border-color: #56400f; }
+.up-system { color: var(--muted); border-color: var(--line); }
