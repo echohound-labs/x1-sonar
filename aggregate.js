@@ -6,6 +6,8 @@
 //   4. Prune raw interactions older than RETENTION_DAYS (default 8)
 
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const { Pool } = require('pg');
 
 const DB_URL = process.env.DATABASE_URL;
@@ -72,6 +74,23 @@ async function aggregate() {
       )::numeric * 1000, 2)
       FROM mx
     `);
+
+    // 2b. Apply the known-program registry (registry.json, PR-able in the repo).
+    //     Names/categories are declarative: edit file → next run applies.
+    try {
+      const reg = JSON.parse(fs.readFileSync(path.join(__dirname, 'registry.json'), 'utf8'));
+      for (const [programId, meta] of Object.entries(reg)) {
+        if (programId.startsWith('_') || !meta || !meta.name) continue;
+        await client.query(
+          `UPDATE sonar.programs
+           SET name = $2, category = COALESCE($3, category), website = COALESCE($4, website), verified = TRUE
+           WHERE program_id = $1`,
+          [programId, meta.name, meta.category || null, meta.website || null]
+        );
+      }
+    } catch (e) {
+      console.error('[sonar-aggregate] registry skipped:', e.message);
+    }
 
     // 3. Daily rollups — today + yesterday (UTC), replay-safe upsert
     await client.query(`

@@ -271,3 +271,39 @@ footer a:hover { color: var(--ping); }
   }
   .rank { width: auto; }
 }
+
+/* ── Category pills & badges (step 6) ───────────── */
+.pills { display: flex; gap: 6px; flex-wrap: wrap; padding-bottom: 10px; }
+.pill {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  cursor: pointer;
+}
+.pill:hover { color: var(--text); }
+.pill.on { color: var(--bg); background: var(--ping); border-color: var(--ping); font-weight: 600; }
+
+.cat {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 1px 7px;
+  color: var(--muted);
+}
+.cat-token { color: #7fd1f5; border-color: #1c4056; }
+.cat-nft { color: #c9a2f5; border-color: #3a2a56; }
+.cat-oracle { color: var(--ping); border-color: var(--ping-dim); }
+.cat-marketplace { color: #f5c07f; border-color: #564018; }
+.cat-game { color: #92f5a2; border-color: #1e5630; }
+.cat-staking { color: #f59bb4; border-color: #56202f; }
+.cat-bridge { color: #f5ef8e; border-color: #565318; }
+.cat-dex { color: #8ef5dc; border-color: #185648; }
+.cat-utility, .cat-unknown { color: var(--muted); }
+
+.spark { display: inline-block; vertical-align: middle; opacity: 0.9; }

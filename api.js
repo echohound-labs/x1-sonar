@@ -57,8 +57,15 @@ fastify.get('/api/programs', async (req, reply) => {
   const { rows } = await pool.query(
     `SELECT ${PROGRAM_FIELDS},
             (first_seen_at > NOW() - INTERVAL '24 hours') AS is_new,
-            ROW_NUMBER() OVER (ORDER BY sonar_score DESC) AS rank
+            ROW_NUMBER() OVER (ORDER BY sonar_score DESC) AS rank,
+            sp.sparkline_7d
      FROM sonar.programs
+     LEFT JOIN LATERAL (
+       SELECT COALESCE(json_agg(d.tx_count ORDER BY d.date), '[]'::json) AS sparkline_7d
+       FROM sonar.daily_stats d
+       WHERE d.program_id = sonar.programs.program_id
+         AND d.date > CURRENT_DATE - INTERVAL '7 days'
+     ) sp ON TRUE
      ${whereSql}
      ORDER BY ${sortCol} ${order} NULLS LAST
      LIMIT $${params.length - 1} OFFSET $${params.length}`,

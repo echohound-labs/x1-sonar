@@ -9,11 +9,13 @@ const REFRESH_MS = 30000;
 const COLS = [
   { key: "rank", label: "#", left: false },
   { key: "program_id", label: "Program", left: true },
+  { key: "category", label: "Category", left: true },
   { key: "sonar_score", label: "Sonar Score", left: false },
   { key: "tx_count_24h", label: "TX 24h", left: false },
   { key: "tx_count_7d", label: "TX 7d", left: false },
   { key: "unique_signers_24h", label: "Signers 24h", left: false },
   { key: "success_rate_24h", label: "Success", left: false },
+  { key: "sparkline", label: "7d Trend", left: false, nosort: true },
   { key: "last_active_at", label: "Last Active", left: false },
 ];
 
@@ -28,6 +30,21 @@ function timeAgo(iso) {
 
 function short(id) {
   return `${id.slice(0, 6)}…${id.slice(-4)}`;
+}
+
+function Sparkline({ data }) {
+  const pts = (data || []).map(Number);
+  if (pts.length < 2) return <span className="dim">·</span>;
+  const max = Math.max(...pts, 1);
+  const w = 64, h = 18;
+  const line = pts
+    .map((v, i) => `${(i / (pts.length - 1)) * w},${h - 2 - (v / max) * (h - 4)}`)
+    .join(" ");
+  return (
+    <svg className="spark" width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden="true">
+      <polyline points={line} fill="none" stroke="var(--ping)" strokeWidth="1.5" />
+    </svg>
+  );
 }
 
 function Radar({ count }) {
@@ -64,6 +81,7 @@ export default function Home() {
   const [updatedAt, setUpdatedAt] = useState(null);
   const [sort, setSort] = useState({ key: "sonar_score", dir: "desc" });
   const [copied, setCopied] = useState(null);
+  const [cat, setCat] = useState("All");
 
   async function load() {
     try {
@@ -86,9 +104,14 @@ export default function Home() {
     return () => clearInterval(t);
   }, []);
 
+  const cats = useMemo(() => {
+    const s = new Set((programs || []).map((p) => p.category || "Unknown"));
+    return ["All", ...[...s].sort()];
+  }, [programs]);
+
   const rows = useMemo(() => {
     if (!programs) return null;
-    const arr = [...programs];
+    const arr = programs.filter((p) => cat === "All" || (p.category || "Unknown") === cat);
     const { key, dir } = sort;
     arr.sort((a, b) => {
       let av = a[key], bv = b[key];
@@ -99,7 +122,7 @@ export default function Home() {
       return 0;
     });
     return arr;
-  }, [programs, sort]);
+  }, [programs, sort, cat]);
 
   const maxScore = useMemo(
     () => (programs || []).reduce((m, p) => Math.max(m, Number(p.sonar_score) || 0), 1),
@@ -107,6 +130,7 @@ export default function Home() {
   );
 
   function clickSort(key) {
+    if (key === "sparkline") return;
     if (key === "rank") key = "sonar_score";
     setSort((s) =>
       s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" }
@@ -161,6 +185,16 @@ export default function Home() {
           : "acquiring signal…"}
       </div>
 
+      {cats.length > 2 && (
+        <div className="pills">
+          {cats.map((c) => (
+            <button key={c} className={`pill ${cat === c ? "on" : ""}`} onClick={() => setCat(c)}>
+              {c}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="board">
         {error && !programs ? (
           <div className="error">{error}</div>
@@ -207,6 +241,11 @@ export default function Home() {
                       {p.is_new && <span className="badge-new">NEW</span>}
                     </span>
                   </td>
+                  <td className="left" data-l="Category">
+                    <span className={`cat cat-${(p.category || "Unknown").toLowerCase()}`}>
+                      {p.category || "Unknown"}
+                    </span>
+                  </td>
                   <td data-l="Sonar Score">
                     <span className="scorecell">
                       <span className="scorebar">
@@ -230,6 +269,7 @@ export default function Home() {
                   >
                     {p.success_rate_24h == null ? "—" : `${Math.round(p.success_rate_24h * 100)}%`}
                   </td>
+                  <td data-l="7d Trend"><Sparkline data={p.sparkline_7d} /></td>
                   <td data-l="Last Active" className="dim">{timeAgo(p.last_active_at)}</td>
                 </tr>
               ))}
