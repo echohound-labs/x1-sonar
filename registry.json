@@ -1,19 +1,75 @@
 {
   "_readme": "Known X1 program registry. PR additions welcome: name, category, optional website. Categories: Token, NFT, DEX, Oracle, Game, Staking, Bridge, Utility, Marketplace.",
-
-  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA": { "name": "SPL Token", "category": "Token", "infrastructure": true },
-  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb": { "name": "Token-2022", "category": "Token", "infrastructure": true },
-  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL": { "name": "Associated Token Account", "category": "Token", "infrastructure": true },
-  "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr": { "name": "Memo", "category": "Utility", "infrastructure": true },
-  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s": { "name": "Metaplex Token Metadata", "category": "NFT", "infrastructure": true },
-
-  "BxUNg2yo5371BQMZPkfcxdCptFRDHkhvEXNM1QNPBRYU": { "name": "Geiger Entropy Oracle", "category": "Oracle", "website": "https://github.com/echohound-labs" },
-  "9yCbdExJXtxexpdEXAcmgGqTnPN4apJbhjZscS8ntk4j": { "name": "X1 Forge Marketplace", "category": "Marketplace", "website": "https://x1forge.xyz" },
-  "5QUVVnm1duiRazqa69KW9ZQhCCZcg5GBUKkUn5avA8Gb": { "name": "RISE Phoenix Mint", "category": "NFT" },
-  "GQPGh1M6xwwWLdGCmWum2BhPi6gkJaoNFXyyuXpgN59v": { "name": "X1City Genesis NFT", "category": "NFT" },
-
-  "9mPmjK8NxJadYDiHiYAQH4WFCZ8kr7ZV8ria63ZkMtv2": { "name": "Oracle V2", "category": "Oracle" },
-  "HqqN6RLpB7ATTEoErCQHNiy5yuUabiMALMdx36a4ygXQ": { "name": "XRoute", "category": "Bridge" },
-  "6ZmP6NNkrfpakD5zfCr5uF8Qc6mKvJEpVFQL5DZje15P": { "name": "Treasury Hunt", "category": "Game" },
-  "staZUFFiH37ug855u25QL3Hm41GgqFK7MGpSHk1JuLi": { "name": "DGN Staking", "category": "Staking" }
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA": {
+    "name": "SPL Token",
+    "category": "Token",
+    "infrastructure": true
+  },
+  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb": {
+    "name": "Token-2022",
+    "category": "Token",
+    "infrastructure": true
+  },
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL": {
+    "name": "Associated Token Account",
+    "category": "Token",
+    "infrastructure": true
+  },
+  "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr": {
+    "name": "Memo",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s": {
+    "name": "Metaplex Token Metadata",
+    "category": "NFT",
+    "infrastructure": true
+  },
+  "BxUNg2yo5371BQMZPkfcxdCptFRDHkhvEXNM1QNPBRYU": {
+    "name": "Geiger Entropy Oracle",
+    "category": "Oracle",
+    "website": "https://github.com/echohound-labs"
+  },
+  "9yCbdExJXtxexpdEXAcmgGqTnPN4apJbhjZscS8ntk4j": {
+    "name": "X1 Forge Marketplace",
+    "category": "Marketplace",
+    "website": "https://x1forge.xyz"
+  },
+  "5QUVVnm1duiRazqa69KW9ZQhCCZcg5GBUKkUn5avA8Gb": {
+    "name": "RISE Phoenix Mint",
+    "category": "NFT"
+  },
+  "GQPGh1M6xwwWLdGCmWum2BhPi6gkJaoNFXyyuXpgN59v": {
+    "name": "X1City Genesis NFT",
+    "category": "NFT"
+  },
+  "9mPmjK8NxJadYDiHiYAQH4WFCZ8kr7ZV8ria63ZkMtv2": {
+    "name": "Oracle V2",
+    "category": "Oracle"
+  },
+  "HqqN6RLpB7ATTEoErCQHNiy5yuUabiMALMdx36a4ygXQ": {
+    "name": "XRoute",
+    "category": "Bridge"
+  },
+  "6ZmP6NNkrfpakD5zfCr5uF8Qc6mKvJEpVFQL5DZje15P": {
+    "name": "Treasury Hunt",
+    "category": "Game"
+  },
+  "staZUFFiH37ug855u25QL3Hm41GgqFK7MGpSHk1JuLi": {
+    "name": "DGN Staking",
+    "category": "Staking"
+  },
+  "XPoo1Fx6KNgeAzFcq2dPTo95bWGUSj5KdPVqYj9CZux": {
+    "name": "SPL Stake Pool",
+    "category": "Staking",
+    "infrastructure": true
+  },
+  "degenDXVPhS7vgu3hcdzGA7T6dfCe6qTYyVM7npP3pc": {
+    "name": "Degen Launchpad",
+    "category": "DEX"
+  },
+  "6kpeW1PX4E5cnch3qqzAw7pN1pDozXr1Z1K1bePzSNxq": {
+    "name": "XDEX TWAP",
+    "category": "DEX"
+  }
 }
