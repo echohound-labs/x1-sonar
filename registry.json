@@ -36,7 +36,7 @@
     "website": "https://x1forge.xyz"
   },
   "5QUVVnm1duiRazqa69KW9ZQhCCZcg5GBUKkUn5avA8Gb": {
-    "name": "RISE Phoenix Mint",
+    "name": "RISE Phoenix",
     "category": "NFT"
   },
   "GQPGh1M6xwwWLdGCmWum2BhPi6gkJaoNFXyyuXpgN59v": {
@@ -71,5 +71,14 @@
   "6kpeW1PX4E5cnch3qqzAw7pN1pDozXr1Z1K1bePzSNxq": {
     "name": "XDEX TWAP",
     "category": "DEX"
+  },
+  "8QGfTSEwKvzr8NKLHw2xEigz18KDfdkiFJeM3ALnvbVH": {
+    "name": "THEO Pools",
+    "category": "Game",
+    "website": "https://theo-pools.vercel.app"
+  },
+  "6r9HZKQRhDfNnZM4m6TgkcK82Bt6EA1q2Ck9VNWoTnGm": {
+    "name": "Capy Warriors",
+    "category": "NFT"
   }
 }
