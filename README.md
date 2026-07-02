@@ -20,3 +20,13 @@
 - Checkpoints every 25 slots; replay-safe (unique program_id+signature, tested)
 - Never outruns confirmed tip; paced (CATCHUP_DELAY_MS) to protect the validator
 - Raw interactions retained ~8 days (aggregator, Step 3, handles rollup + pruning)
+
+## Credits
+
+X1 Sonar is built and maintained by **Echo Hound Labs** — open tools and
+infrastructure for the X1 blockchain. Licensed under MIT: use it freely,
+fork it, build on it. If you do, a link back is appreciated but not required.
+
+**Contributing a program name:** X1 Sonar's registry is community-driven.
+If you know what an unidentified program is, open a PR editing `registry.json`
+with its name, category, and (optionally) website.
