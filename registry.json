@@ -1,19 +1,90 @@
 {
   "_readme": "Known X1 program registry. PR additions welcome: name, category, optional website. Categories: Token, NFT, DEX, Oracle, Game, Staking, Bridge, Utility, Marketplace.",
-
-  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA": { "name": "SPL Token", "category": "Token" },
-  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb": { "name": "Token-2022", "category": "Token" },
-  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL": { "name": "Associated Token Account", "category": "Token" },
-  "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr": { "name": "Memo", "category": "Utility" },
-  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s": { "name": "Metaplex Token Metadata", "category": "NFT" },
-
-  "BxUNg2yo5371BQMZPkfcxdCptFRDHkhvEXNM1QNPBRYU": { "name": "Geiger Entropy Oracle", "category": "Oracle", "website": "https://github.com/echohound-labs" },
-  "9yCbdExJXtxexpdEXAcmgGqTnPN4apJbhjZscS8ntk4j": { "name": "X1 Forge Marketplace", "category": "Marketplace", "website": "https://x1forge.xyz" },
-  "5QUVVnm1duiRazqa69KW9ZQhCCZcg5GBUKkUn5avA8Gb": { "name": "RISE Phoenix Mint", "category": "NFT" },
-  "GQPGh1M6xwwWLdGCmWum2BhPi6gkJaoNFXyyuXpgN59v": { "name": "X1City Genesis NFT", "category": "NFT" },
-
-  "9mPmjK8NxJadYDiHiYAQH4WFCZ8kr7ZV8ria63ZkMtv2": { "name": "Oracle V2", "category": "Oracle" },
-  "HqqN6RLpB7ATTEoErCQHNiy5yuUabiMALMdx36a4ygXQ": { "name": "XRoute", "category": "Bridge" },
-  "6ZmP6NNkrfpakD5zfCr5uF8Qc6mKvJEpVFQL5DZje15P": { "name": "Treasury Hunt", "category": "Game" },
-  "staZUFFiH37ug855u25QL3Hm41GgqFK7MGpSHk1JuLi": { "name": "DGN Staking", "category": "Staking" }
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA": {
+    "name": "SPL Token",
+    "category": "Token"
+  },
+  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb": {
+    "name": "Token-2022",
+    "category": "Token"
+  },
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL": {
+    "name": "Associated Token Account",
+    "category": "Token"
+  },
+  "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr": {
+    "name": "Memo",
+    "category": "Utility"
+  },
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s": {
+    "name": "Metaplex Token Metadata",
+    "category": "NFT"
+  },
+  "BxUNg2yo5371BQMZPkfcxdCptFRDHkhvEXNM1QNPBRYU": {
+    "name": "Geiger Entropy Oracle",
+    "category": "Oracle",
+    "website": "https://github.com/echohound-labs"
+  },
+  "9yCbdExJXtxexpdEXAcmgGqTnPN4apJbhjZscS8ntk4j": {
+    "name": "X1 Forge Marketplace",
+    "category": "Marketplace",
+    "website": "https://x1forge.xyz"
+  },
+  "5QUVVnm1duiRazqa69KW9ZQhCCZcg5GBUKkUn5avA8Gb": {
+    "name": "RISE Phoenix Mint",
+    "category": "NFT"
+  },
+  "GQPGh1M6xwwWLdGCmWum2BhPi6gkJaoNFXyyuXpgN59v": {
+    "name": "X1City Genesis NFT",
+    "category": "NFT"
+  },
+  "9mPmjK8NxJadYDiHiYAQH4WFCZ8kr7ZV8ria63ZkMtv2": {
+    "name": "Oracle V2",
+    "category": "Oracle"
+  },
+  "HqqN6RLpB7ATTEoErCQHNiy5yuUabiMALMdx36a4ygXQ": {
+    "name": "XRoute",
+    "category": "Bridge"
+  },
+  "6ZmP6NNkrfpakD5zfCr5uF8Qc6mKvJEpVFQL5DZje15P": {
+    "name": "Treasury Hunt",
+    "category": "Game"
+  },
+  "staZUFFiH37ug855u25QL3Hm41GgqFK7MGpSHk1JuLi": {
+    "name": "DGN Staking",
+    "category": "Staking"
+  },
+  "sEsYH97wqmfnkzHedjNcw3zyJdPvUmsa9AixhS4b4fN": {
+    "name": "XDEX",
+    "category": "DEX",
+    "website": "https://xdex.xyz"
+  },
+  "BSKTJpgAGHRaSMLA88chYPKuSuD9qbesEcHYmUrBWU7R": {
+    "name": "Entropy Engine Validator Pool",
+    "category": "Oracle"
+  },
+  "FDyWtM9UBNfXNuc5oZJ1V86d3dz635WnqMfX8x5Uifbm": {
+    "name": "Entropy Engine",
+    "category": "Oracle"
+  },
+  "oXpLqbxQmMNsa43t5DPBXj2KKCsujyw3K8HkezyyXoR": {
+    "name": "Price Oracle",
+    "category": "Oracle"
+  },
+  "2thzsm9z31MPEvDWHuuSGqAcjrr5ek4pS78EgPAT4Fch": {
+    "name": "X1 Strontium",
+    "category": "Oracle"
+  },
+  "5rQBTqjPYU6tXp551oyJ6HfmAdSUTFz4vnR4Cp4wcwrZ": {
+    "name": "XDEX Limit Orders",
+    "category": "DEX"
+  },
+  "6JbPTuxVuoTgyQeXFb9MH8C8nUY8NBbLP1Lu4B13JfMD": {
+    "name": "Warp Bridge",
+    "category": "Bridge"
+  },
+  "FHqyYq2kQAGZp9mmXt8NxGGn9NTK17nGJ3DeZnfM2DLT": {
+    "name": "X1 Marketplace",
+    "category": "Marketplace"
+  }
 }
