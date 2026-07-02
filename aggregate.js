@@ -1,0 +1,114 @@
+// X1 Sonar — aggregator
+// Run-once script (invoked by systemd timer every 5 minutes):
+//   1. Recompute per-program 24h/7d tx + signer counts and success rate
+//   2. Compute Sonar Score (Theo's formula)
+//   3. Upsert daily_stats rollups (today + yesterday, UTC)
+//   4. Prune raw interactions older than RETENTION_DAYS (default 8)
+
+require('dotenv').config();
+const { Pool } = require('pg');
+
+const DB_URL = process.env.DATABASE_URL;
+const RETENTION_DAYS = parseInt(process.env.RETENTION_DAYS || '8', 10);
+
+const pool = new Pool({ connectionString: DB_URL });
+
+async function aggregate() {
+  const client = await pool.connect();
+  const t0 = Date.now();
+  try {
+    await client.query('BEGIN');
+
+    // 1. Reset windowed counts, then fill from the raw table.
+    //    Reset first so programs that went quiet drop to 0 instead of
+    //    keeping stale counts forever.
+    await client.query(`
+      UPDATE sonar.programs SET
+        tx_count_24h = 0, tx_count_7d = 0,
+        unique_signers_24h = 0, unique_signers_7d = 0,
+        success_rate_24h = NULL
+    `);
+
+    await client.query(`
+      UPDATE sonar.programs p SET
+        tx_count_7d        = a.tx_7d,
+        unique_signers_7d  = a.signers_7d,
+        tx_count_24h       = a.tx_24h,
+        unique_signers_24h = a.signers_24h,
+        success_rate_24h   = a.success_rate_24h
+      FROM (
+        SELECT program_id,
+               COUNT(*)                                            AS tx_7d,
+               COUNT(DISTINCT signer)                              AS signers_7d,
+               COUNT(*)          FILTER (WHERE ts > NOW() - INTERVAL '24 hours') AS tx_24h,
+               COUNT(DISTINCT signer) FILTER (WHERE ts > NOW() - INTERVAL '24 hours') AS signers_24h,
+               CASE WHEN COUNT(*) FILTER (WHERE ts > NOW() - INTERVAL '24 hours') > 0
+                    THEN (COUNT(*) FILTER (WHERE success AND ts > NOW() - INTERVAL '24 hours'))::real
+                       / (COUNT(*) FILTER (WHERE ts > NOW() - INTERVAL '24 hours'))
+                    ELSE NULL END                                  AS success_rate_24h
+        FROM sonar.interactions
+        WHERE ts > NOW() - INTERVAL '7 days'
+        GROUP BY program_id
+      ) a
+      WHERE p.program_id = a.program_id
+    `);
+
+    // 2. Sonar Score (Theo's weights):
+    //    0.35 * log-normalized 7d tx
+    //  + 0.45 * log-normalized 7d signers
+    //  + 0.15 * recency (linear decay over 7 days)
+    //  + 0.05 * age bonus (1.0 if >30 days old, else 0.5)
+    //    NULLIF guards the all-zero cold-start case.
+    await client.query(`
+      WITH mx AS (
+        SELECT MAX(tx_count_7d) AS max_tx, MAX(unique_signers_7d) AS max_s
+        FROM sonar.programs
+      )
+      UPDATE sonar.programs p SET sonar_score = ROUND((
+        0.35 * COALESCE(LN(p.tx_count_7d + 1) / NULLIF(LN(mx.max_tx + 1), 0), 0)
+      + 0.45 * COALESCE(LN(p.unique_signers_7d + 1) / NULLIF(LN(mx.max_s + 1), 0), 0)
+      + 0.15 * GREATEST(0, 1 - EXTRACT(EPOCH FROM (NOW() - p.last_active_at)) / 604800.0)
+      + 0.05 * CASE WHEN p.first_seen_at < NOW() - INTERVAL '30 days' THEN 1.0 ELSE 0.5 END
+      )::numeric * 1000, 2)
+      FROM mx
+    `);
+
+    // 3. Daily rollups — today + yesterday (UTC), replay-safe upsert
+    await client.query(`
+      INSERT INTO sonar.daily_stats (program_id, date, tx_count, unique_signers)
+      SELECT program_id, ts::date, COUNT(*), COUNT(DISTINCT signer)
+      FROM sonar.interactions
+      WHERE ts >= (CURRENT_DATE - INTERVAL '1 day')
+      GROUP BY program_id, ts::date
+      ON CONFLICT (program_id, date) DO UPDATE SET
+        tx_count = EXCLUDED.tx_count,
+        unique_signers = EXCLUDED.unique_signers
+    `);
+
+    await client.query('COMMIT');
+  } catch (e) {
+    await client.query('ROLLBACK');
+    throw e;
+  } finally {
+    client.release();
+  }
+
+  // 4. Prune outside the main transaction (can be a big delete)
+  const pruned = await pool.query(
+    `DELETE FROM sonar.interactions WHERE ts < NOW() - ($1 || ' days')::interval`,
+    [RETENTION_DAYS]
+  );
+
+  console.log(`[sonar-aggregate] done in ${Date.now() - t0}ms | pruned ${pruned.rowCount} rows`);
+}
+
+if (require.main === module) {
+  aggregate()
+    .then(() => pool.end())
+    .catch((e) => {
+      console.error('[sonar-aggregate] Fatal:', e.message);
+      process.exit(1);
+    });
+}
+
+module.exports = { aggregate, pool };

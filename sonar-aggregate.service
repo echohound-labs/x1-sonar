@@ -1,0 +1,12 @@
+# /etc/systemd/system/sonar-aggregate.service
+[Unit]
+Description=X1 Sonar aggregation job (rollups + score + prune)
+After=postgresql.service
+
+[Service]
+Type=oneshot
+User=bots
+WorkingDirectory=/home/bots/x1-sonar
+ExecStart=/usr/bin/node aggregate.js
+StandardOutput=journal
+StandardError=journal

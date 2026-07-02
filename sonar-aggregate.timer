@@ -1,0 +1,10 @@
+# /etc/systemd/system/sonar-aggregate.timer
+[Unit]
+Description=Run X1 Sonar aggregation every 5 minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+
+[Install]
+WantedBy=timers.target
