@@ -1,0 +1,17 @@
+# /etc/systemd/system/sonar-api.service
+[Unit]
+Description=X1 Sonar REST API
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=bots
+WorkingDirectory=/home/bots/x1-sonar
+ExecStart=/usr/bin/node api.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
