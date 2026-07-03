@@ -90,5 +90,53 @@
     "name": "Squads Protocol",
     "category": "Utility",
     "website": "https://squads.so"
+  },
+  "BPFLoaderUpgradeab1e11111111111111111111111": {
+    "name": "BPF Upgradeable Loader",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "AddressLookupTab1e1111111111111111111111111": {
+    "name": "Address Lookup Table",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "Ed25519SigVerify111111111111111111111111111": {
+    "name": "Ed25519 Signature Verify",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d": {
+    "name": "Metaplex Core",
+    "category": "NFT",
+    "infrastructure": true
+  },
+  "7ZueT8o1YQ82NkXMkBLje99HCbfZZ89rYnvY5LbHRFYG": {
+    "name": "Ripper Swap",
+    "category": "DEX"
+  },
+  "4QRS5vQUeYsPDDH7KAqoyWfXYF22S9ZDmWCJUKFre6Ga": {
+    "name": "XDEX Router",
+    "category": "DEX"
+  },
+  "7aGaE2nGkjmwEWCg3YTyHt1qATQDdebVZbWVxPLrGkZ7": {
+    "name": "X1 Agent Program",
+    "category": "Utility"
+  },
+  "EHZfFVB38genhLo2VcWKmb5Cr3ESFxLJQ71FjtDdSWBc": {
+    "name": "Jack Staking",
+    "category": "Staking"
+  },
+  "uaDkkJGLLEY3kFMhhvrh5MZJ6fmwCmhNf8L7BZQJ9Aw": {
+    "name": "MIND Staking",
+    "category": "Staking"
+  },
+  "6K6md8GFmT8fncNbWqHSJrduYfG6HgnFCp34jdouGVSM": {
+    "name": "XEN Mint",
+    "category": "Token"
+  },
+  "x1Dp8D2X1nkHXZbEUQrh58mrUUSwEynYoVdXG5tE268": {
+    "name": "Delegation Manager",
+    "category": "Staking"
   }
 }
