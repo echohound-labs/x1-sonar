@@ -19,6 +19,7 @@ const CHECKPOINT_EVERY = parseInt(process.env.CHECKPOINT_EVERY || '25', 10);  //
 const EXCLUDED_PROGRAMS = new Set([
   'Vote111111111111111111111111111111111111111',
   'ComputeBudget111111111111111111111111111111',
+  '11111111111111111111111111111111',
 ]);
 
 const connection = new Connection(RPC_URL, 'confirmed');
