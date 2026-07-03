@@ -19,7 +19,6 @@ const CHECKPOINT_EVERY = parseInt(process.env.CHECKPOINT_EVERY || '25', 10);  //
 const EXCLUDED_PROGRAMS = new Set([
   'Vote111111111111111111111111111111111111111',
   'ComputeBudget111111111111111111111111111111',
-  '11111111111111111111111111111111',
 ]);
 
 const connection = new Connection(RPC_URL, 'confirmed');
@@ -63,14 +62,25 @@ function extractInteractions(block, slot) {
     const signature = tx.transaction.signatures[0];
 
     const instructions = msg.compiledInstructions || msg.instructions || [];
-    const seen = new Set(); // dedupe program per tx
+    const seen = new Set(); // dedupe program per tx (top-level + CPI count once)
 
-    for (const ix of instructions) {
-      const idx = ix.programIdIndex;
+    const credit = (idx) => {
       const programId = keys[idx];
-      if (!programId || EXCLUDED_PROGRAMS.has(programId) || seen.has(programId)) continue;
+      if (!programId || EXCLUDED_PROGRAMS.has(programId) || seen.has(programId)) return;
       seen.add(programId);
       rows.push({ programId, signature, slot, signer, success, ts });
+    };
+
+    // Top-level instructions
+    for (const ix of instructions) credit(ix.programIdIndex);
+
+    // Inner instructions (CPIs) — programs invoked BY other programs get
+    // credited too, so composable infra (oracles, routers, token engines)
+    // is measured by its real consumers, not just direct callers.
+    for (const inner of (meta && meta.innerInstructions) || []) {
+      for (const ix of inner.instructions || []) {
+        if (ix.programIdIndex !== undefined) credit(ix.programIdIndex);
+      }
     }
   }
   return rows;

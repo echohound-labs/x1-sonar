@@ -59,3 +59,36 @@ assert.strictEqual(rows[0].ts.toISOString(), '2026-07-02T00:00:00.000Z');
 
 console.log('✓ all extraction checks passed');
 console.log(JSON.stringify(rows, null, 2));
+
+// ── CPI capture test (methodology v2) ──
+const ORACLE2 = 'GeigerOracLe1111111111111111111111111111111';
+const cpiBlock = {
+  blockTime: 1782950400,
+  transactions: [
+    // NFT mint: user invokes DEX (stand-in for RISE) top-level; DEX CPIs into oracle + SPL-ish program.
+    // Oracle must be credited with the MINTER as signer. Vote CPI must still be excluded.
+    {
+      transaction: {
+        signatures: ['sig_mint'],
+        message: {
+          staticAccountKeys: [SIGNER, DEX, ORACLE2, VOTE],
+          compiledInstructions: [{ programIdIndex: 1 }],
+        },
+      },
+      meta: {
+        err: null,
+        loadedAddresses: null,
+        innerInstructions: [
+          { index: 0, instructions: [{ programIdIndex: 2 }, { programIdIndex: 3 }, { programIdIndex: 1 }] },
+        ],
+      },
+    },
+  ],
+};
+const cpiRows = extractInteractions(cpiBlock, 999);
+assert.strictEqual(cpiRows.length, 2, `CPI: expected 2 rows (DEX + oracle), got ${cpiRows.length}`);
+assert.ok(cpiRows.some((r) => r.programId === ORACLE2), 'CPI-invoked oracle not credited');
+assert.ok(cpiRows.every((r) => r.signer === SIGNER), 'CPI rows must carry the tx fee payer as signer');
+assert.ok(!cpiRows.some((r) => r.programId === VOTE), 'excluded program leaked via CPI');
+assert.strictEqual(cpiRows.filter((r) => r.programId === DEX).length, 1, 'top-level + CPI same program double-counted');
+console.log('✓ CPI capture: oracle credited with minter as signer, exclusions + dedupe hold');

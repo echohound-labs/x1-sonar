@@ -21,12 +21,16 @@
 - Never outruns confirmed tip; paced (CATCHUP_DELAY_MS) to protect the validator
 - Raw interactions retained ~8 days (aggregator, Step 3, handles rollup + pruning)
 
-## Credits
+## Methodology note — v2 (CPI capture)
 
-X1 Sonar is built and maintained by **Echo Hound Labs** — open tools and
-infrastructure for the X1 blockchain. Licensed under MIT: use it freely,
-fork it, build on it. If you do, a link back is appreciated but not required.
+As of v2, the indexer credits programs invoked via **inner instructions
+(CPIs)**, not just top-level instructions. Rationale: composable programs —
+oracles, routers, token engines — are consumed *by other programs* on behalf
+of end users. Counting only direct invocations made their real usage
+invisible. With CPI capture, a user minting an NFT whose contract pulls
+on-chain randomness credits the oracle with that user's signature too.
 
-**Contributing a program name:** X1 Sonar's registry is community-driven.
-If you know what an unidentified program is, open a PR editing `registry.json`
-with its name, category, and (optionally) website.
+Applies evenly to every program, from deployment of v2 forward (history is
+not rescanned). Expect infrastructure programs (SPL Token, ATA) to rise —
+that is accurate: they are genuinely the most-used programs, and the SYSTEM
+badge + "Apps only" toggle keep them distinguishable.
