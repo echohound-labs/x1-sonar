@@ -138,5 +138,38 @@
   "x1Dp8D2X1nkHXZbEUQrh58mrUUSwEynYoVdXG5tE268": {
     "name": "Delegation Manager",
     "category": "Staking"
+  },
+  "Config1111111111111111111111111111111111111": {
+    "name": "Config Program",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "8ksW5j9oudqk2s47QcPjj5s5p7aT5ebrAzVMUYuqXQgt": {
+    "name": "OnChain Compress",
+    "category": "Utility"
+  },
+  "Esz2N1mREFY3sVwqY4NeaEybUoeMC2SDxKWxLGRZTXoP": {
+    "name": "HWR Staking",
+    "category": "Staking"
+  },
+  "BU7aJiim4pagjbPRMV8kuzt4dNqR1MMRGwrEj9uHbQVQ": {
+    "name": "Dual-Reward Token Farm",
+    "category": "Staking"
+  },
+  "Fts9s3NgngC7AsgJzSoWhptiqWdAAveqCLUwfBTub7mj": {
+    "name": "XH Token Minter",
+    "category": "Token"
+  },
+  "5Y11zMtLYLofb5vQRJsReKYqT8GbtZPo1TsB6oEhMfzq": {
+    "name": "Kryptark Registry",
+    "category": "Utility"
+  },
+  "J4QL6xJ1KBZ2A2xxyoVG7tKUBPgjr4wg1uat5yJFz3rj": {
+    "name": "XDEX XP Rewards",
+    "category": "DEX"
+  },
+  "7ytRMwKykiJnbT3gdLXPCUZMzrTNZZbr7m2i7fwiyjbJ": {
+    "name": "Vow Protocol",
+    "category": "Staking"
   }
 }
