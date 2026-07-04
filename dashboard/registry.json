@@ -1,0 +1,184 @@
+{
+  "_readme": "Known X1 program registry. PR additions welcome: name, category, optional website. Categories: Token, NFT, DEX, Oracle, Game, Staking, Bridge, Utility, Marketplace.",
+  "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA": {
+    "name": "SPL Token",
+    "category": "Token",
+    "infrastructure": true
+  },
+  "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb": {
+    "name": "Token-2022",
+    "category": "Token",
+    "infrastructure": true,
+    "website": "https://spl.solana.com/token-2022"
+  },
+  "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL": {
+    "name": "Associated Token Account",
+    "category": "Token",
+    "infrastructure": true
+  },
+  "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr": {
+    "name": "Memo",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s": {
+    "name": "Metaplex Token Metadata",
+    "category": "NFT",
+    "infrastructure": true
+  },
+  "BxUNg2yo5371BQMZPkfcxdCptFRDHkhvEXNM1QNPBRYU": {
+    "name": "Geiger Entropy Oracle",
+    "category": "Oracle",
+    "website": "https://geiger-dashboard.vercel.app"
+  },
+  "9yCbdExJXtxexpdEXAcmgGqTnPN4apJbhjZscS8ntk4j": {
+    "name": "X1 Forge",
+    "category": "Marketplace",
+    "website": "https://x1forge.xyz"
+  },
+  "5QUVVnm1duiRazqa69KW9ZQhCCZcg5GBUKkUn5avA8Gb": {
+    "name": "RISE Phoenix",
+    "category": "NFT",
+    "website": "https://rise-phoenix-nft.vercel.app"
+  },
+  "GQPGh1M6xwwWLdGCmWum2BhPi6gkJaoNFXyyuXpgN59v": {
+    "name": "X1City Genesis NFT",
+    "category": "NFT"
+  },
+  "9mPmjK8NxJadYDiHiYAQH4WFCZ8kr7ZV8ria63ZkMtv2": {
+    "name": "Oracle V2",
+    "category": "Oracle"
+  },
+  "HqqN6RLpB7ATTEoErCQHNiy5yuUabiMALMdx36a4ygXQ": {
+    "name": "XRoute",
+    "category": "Bridge"
+  },
+  "6ZmP6NNkrfpakD5zfCr5uF8Qc6mKvJEpVFQL5DZje15P": {
+    "name": "Treasury Hunt",
+    "category": "Game"
+  },
+  "staZUFFiH37ug855u25QL3Hm41GgqFK7MGpSHk1JuLi": {
+    "name": "DGN Staking",
+    "category": "Staking"
+  },
+  "XPoo1Fx6KNgeAzFcq2dPTo95bWGUSj5KdPVqYj9CZux": {
+    "name": "Validator Stake Pool",
+    "category": "Staking",
+    "infrastructure": true,
+    "website": "https://spl.solana.com/stake-pool"
+  },
+  "degenDXVPhS7vgu3hcdzGA7T6dfCe6qTYyVM7npP3pc": {
+    "name": "Degen Launchpad",
+    "category": "DEX"
+  },
+  "6kpeW1PX4E5cnch3qqzAw7pN1pDozXr1Z1K1bePzSNxq": {
+    "name": "XDEX TWAP",
+    "category": "DEX"
+  },
+  "8QGfTSEwKvzr8NKLHw2xEigz18KDfdkiFJeM3ALnvbVH": {
+    "name": "THEO Pools",
+    "category": "Staking",
+    "website": "https://theo-pools.vercel.app"
+  },
+  "6r9HZKQRhDfNnZM4m6TgkcK82Bt6EA1q2Ck9VNWoTnGm": {
+    "name": "Capy Warriors",
+    "category": "NFT",
+    "website": "https://capy-nft-mint.vercel.app"
+  },
+  "Stake11111111111111111111111111111111111111": {
+    "name": "Native Stake Program",
+    "category": "Staking",
+    "infrastructure": true
+  },
+  "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf": {
+    "name": "Squads Protocol",
+    "category": "Utility",
+    "website": "https://squads.so"
+  },
+  "BPFLoaderUpgradeab1e11111111111111111111111": {
+    "name": "BPF Upgradeable Loader",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "AddressLookupTab1e1111111111111111111111111": {
+    "name": "Address Lookup Table",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "Ed25519SigVerify111111111111111111111111111": {
+    "name": "Ed25519 Signature Verify",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d": {
+    "name": "Metaplex Core",
+    "category": "NFT",
+    "infrastructure": true
+  },
+  "7ZueT8o1YQ82NkXMkBLje99HCbfZZ89rYnvY5LbHRFYG": {
+    "name": "Ripper Swap",
+    "category": "DEX"
+  },
+  "4QRS5vQUeYsPDDH7KAqoyWfXYF22S9ZDmWCJUKFre6Ga": {
+    "name": "XDEX Router",
+    "category": "DEX"
+  },
+  "7aGaE2nGkjmwEWCg3YTyHt1qATQDdebVZbWVxPLrGkZ7": {
+    "name": "X1 Agent Program",
+    "category": "Utility"
+  },
+  "EHZfFVB38genhLo2VcWKmb5Cr3ESFxLJQ71FjtDdSWBc": {
+    "name": "Jack Staking",
+    "category": "Staking"
+  },
+  "uaDkkJGLLEY3kFMhhvrh5MZJ6fmwCmhNf8L7BZQJ9Aw": {
+    "name": "MIND Staking",
+    "category": "Staking"
+  },
+  "6K6md8GFmT8fncNbWqHSJrduYfG6HgnFCp34jdouGVSM": {
+    "name": "XEN Mint",
+    "category": "Token"
+  },
+  "x1Dp8D2X1nkHXZbEUQrh58mrUUSwEynYoVdXG5tE268": {
+    "name": "Delegation Manager",
+    "category": "Staking"
+  },
+  "Config1111111111111111111111111111111111111": {
+    "name": "Config Program",
+    "category": "Utility",
+    "infrastructure": true
+  },
+  "8ksW5j9oudqk2s47QcPjj5s5p7aT5ebrAzVMUYuqXQgt": {
+    "name": "OnChain Compress",
+    "category": "Utility"
+  },
+  "Esz2N1mREFY3sVwqY4NeaEybUoeMC2SDxKWxLGRZTXoP": {
+    "name": "HWR Staking",
+    "category": "Staking"
+  },
+  "BU7aJiim4pagjbPRMV8kuzt4dNqR1MMRGwrEj9uHbQVQ": {
+    "name": "Dual-Reward Token Farm",
+    "category": "Staking"
+  },
+  "Fts9s3NgngC7AsgJzSoWhptiqWdAAveqCLUwfBTub7mj": {
+    "name": "XH Token Minter",
+    "category": "Token"
+  },
+  "5Y11zMtLYLofb5vQRJsReKYqT8GbtZPo1TsB6oEhMfzq": {
+    "name": "Kryptark Registry",
+    "category": "Utility"
+  },
+  "J4QL6xJ1KBZ2A2xxyoVG7tKUBPgjr4wg1uat5yJFz3rj": {
+    "name": "XDEX XP Rewards",
+    "category": "DEX"
+  },
+  "7ytRMwKykiJnbT3gdLXPCUZMzrTNZZbr7m2i7fwiyjbJ": {
+    "name": "Vow Protocol",
+    "category": "Staking"
+  },
+  "sEsYH97wqmfnkzHedjNcw3zyJdPvUmsa9AixhS4b4fN": {
+    "name": "XDEX",
+    "category": "DEX",
+    "website": "https://xdex.xyz"
+  }
+}

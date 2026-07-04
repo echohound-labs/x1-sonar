@@ -1,5 +1,5 @@
 "use client";
-import registry from "../../registry.json";
+import registry from "../registry.json";
 
 import { useEffect, useMemo, useState } from "react";
 
