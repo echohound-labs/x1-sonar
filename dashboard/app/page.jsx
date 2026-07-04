@@ -1,4 +1,5 @@
 "use client";
+import registry from "../../registry.json";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -249,6 +250,9 @@ export default function Home() {
                       <button className="copy" onClick={() => copyId(p.program_id)}>
                         {copied === p.program_id ? "ok" : "copy"}
                       </button>
+                      {registry[p.program_id]?.website && (
+                        <a className="site" href={registry[p.program_id].website} target="_blank" rel="noopener noreferrer">site ↗</a>
+                      )}
                       {p.is_new && <span className="badge-new">NEW</span>}
                     </span>
                   </td>
