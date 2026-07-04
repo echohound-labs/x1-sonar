@@ -180,5 +180,10 @@
     "name": "XDEX",
     "category": "DEX",
     "website": "https://xdex.xyz"
+  },
+  "6JbPTuxVuoTgyQeXFb9MH8C8nUY8NBbLP1Lu4B13JfMD": {
+    "name": "Warp Bridge",
+    "category": "Bridge",
+    "website": "https://app.bridge.x1.xyz"
   }
 }
