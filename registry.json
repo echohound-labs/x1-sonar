@@ -175,5 +175,10 @@
   "7ytRMwKykiJnbT3gdLXPCUZMzrTNZZbr7m2i7fwiyjbJ": {
     "name": "Vow Protocol",
     "category": "Staking"
+  },
+  "sEsYH97wqmfnkzHedjNcw3zyJdPvUmsa9AixhS4b4fN": {
+    "name": "XDEX",
+    "category": "DEX",
+    "website": "https://xdex.xyz"
   }
 }
