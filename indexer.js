@@ -118,11 +118,15 @@ async function writeBatch(rows) {
     for (const [programId, n] of counts) {
       const sample = rows.find((r) => r.programId === programId);
       await client.query(
-        `INSERT INTO sonar.programs (program_id, first_seen_slot, first_seen_at, last_active_at, tx_count_all)
-         VALUES ($1, $2, $3, $3, $4)
+        `INSERT INTO sonar.programs (program_id, first_seen_slot, first_seen_at, last_active_at, tx_count_all, tx_all_time)
+         VALUES ($1, $2, $3, $3, $4, $4)
          ON CONFLICT (program_id) DO UPDATE SET
            last_active_at = GREATEST(sonar.programs.last_active_at, EXCLUDED.last_active_at),
-           tx_count_all   = sonar.programs.tx_count_all + EXCLUDED.tx_count_all`,
+           tx_count_all   = sonar.programs.tx_count_all + EXCLUDED.tx_count_all,
+           -- Lifetime counter: replay-safe because n counts only interactions
+           -- actually inserted this batch (RETURNING skips ON CONFLICT rows).
+           -- COALESCE guards rows backfilled to NULL; baseline is preserved.
+           tx_all_time    = COALESCE(sonar.programs.tx_all_time, 0) + EXCLUDED.tx_all_time`,
         [programId, sample.slot, sample.ts, n]
       );
     }
