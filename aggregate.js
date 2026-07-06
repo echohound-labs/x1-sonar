@@ -3,7 +3,7 @@
 //   1. Recompute per-program 24h/7d tx + signer counts and success rate
 //   2. Compute Sonar Score (Theo's formula)
 //   3. Upsert daily_stats rollups (today + yesterday, UTC)
-//   4. Prune raw interactions older than RETENTION_DAYS (default 8)
+//   4. Prune raw interactions older than RETENTION_DAYS (default 31)
 
 require('dotenv').config();
 const fs = require('fs');
@@ -11,7 +11,7 @@ const path = require('path');
 const { Pool } = require('pg');
 
 const DB_URL = process.env.DATABASE_URL;
-const RETENTION_DAYS = parseInt(process.env.RETENTION_DAYS || '8', 10);
+const RETENTION_DAYS = parseInt(process.env.RETENTION_DAYS || '31', 10);
 const RPC = process.env.X1_RPC_URL || 'http://localhost:8899';
 
 const pool = new Pool({ connectionString: DB_URL });
