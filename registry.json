@@ -185,5 +185,54 @@
     "name": "Warp Bridge",
     "category": "Bridge",
     "website": "https://app.bridge.x1.xyz"
+  },
+  "CrZFvAMZBtqp8mrwBXgYq25bm9y7hjaV1sBPrPZUJmiF": {
+    "name": "Primeminer",
+    "category": "Token",
+    "website": "https://primeminer.xyz"
+  },
+  "F3ydfNgdM89BK5hDh7amVmt8AAGQSYCX1afb3EWZKGh8": {
+    "name": "XChat",
+    "category": "Utility"
+  },
+  "DywBwS9HUUhAu1TcDxq7GaThFZHY92ZN9VQmHwDaBdox": {
+    "name": "Shielded X1",
+    "category": "DEX"
+  },
+  "6n133fKcRGGgWcv6RwoEB2SHng8RYoVQ14f1DNscgAM5": {
+    "name": "X1 OTC Escrow",
+    "category": "DEX"
+  },
+  "89DwceNFhbh2WNd6MJAQ3U6qTpZ26WgW5d4PCUWwmwkp": {
+    "name": "ZK Verifier",
+    "category": "Utility"
+  },
+  "Fexje6CprTCWq6fbfYymjPao3ehYRiT8w8NspP2nv3yM": {
+    "name": "Groth16 Verifier",
+    "category": "Utility"
+  },
+  "HAWdiMtvTfiFhENgxPdWEgBQmoa3A5oN1KV9N3LSmxXz": {
+    "name": "MIND Melt",
+    "category": "Staking"
+  },
+  "7D1RrSLwfamYwxxComyHxj1uXiuzwrcJphy1436Xvud2": {
+    "name": "AgentID",
+    "category": "Utility"
+  },
+  "E9QqBtLFqBnhoWyFQ69zUg4gjyiLhwKnEAtLHHRpRgKn": {
+    "name": "Kryptark Treasury",
+    "category": "Utility"
+  },
+  "2D3odmy1CLH5MWQ58j7aHfCHJgiBqmAaHZoLWxgpFjAz": {
+    "name": "FHE Vault",
+    "category": "Utility"
+  },
+  "9vpDcmoVr8ymY69pEZLKP1KDbeA4C5Ah7ZT2jZQK6sGa": {
+    "name": "FHE Vault v2",
+    "category": "Utility"
+  },
+  "CKZHwoUZTJEnGNK4piPxyysrhwLKnnrNoBmEHM9rLaD4": {
+    "name": "Labwork Marketplace",
+    "category": "Marketplace"
   }
 }
