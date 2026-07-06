@@ -85,7 +85,7 @@ export default function Home() {
   const [sort, setSort] = useState({ key: "sonar_score", dir: "desc" });
   const [copied, setCopied] = useState(null);
   const [cat, setCat] = useState("All");
-  const [appsOnly, setAppsOnly] = useState(false);
+  const [appsOnly, setAppsOnly] = useState(true);
 
   async function load() {
     try {

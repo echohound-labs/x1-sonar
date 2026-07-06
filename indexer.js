@@ -125,8 +125,11 @@ async function writeBatch(rows) {
            tx_count_all   = sonar.programs.tx_count_all + EXCLUDED.tx_count_all,
            -- Lifetime counter: replay-safe because n counts only interactions
            -- actually inserted this batch (RETURNING skips ON CONFLICT rows).
-           -- COALESCE guards rows backfilled to NULL; baseline is preserved.
-           tx_all_time    = COALESCE(sonar.programs.tx_all_time, 0) + EXCLUDED.tx_all_time`,
+           -- No COALESCE: only programs with a non-NULL backfilled baseline
+           -- accumulate. Un-backfilled infra rows are deliberately NULL, and
+           -- NULL + anything = NULL, so they stay NULL and render as "—"
+           -- instead of counting up from a false-low zero baseline.
+           tx_all_time    = sonar.programs.tx_all_time + EXCLUDED.tx_all_time`,
         [programId, sample.slot, sample.ts, n]
       );
     }
