@@ -118,11 +118,18 @@ async function commitFull(opts, stats) {
   const client = new Client({ connectionString: process.env.DATABASE_URL });
   await client.connect();
   try {
-    await client.query(
-      `ALTER TABLE sonar.programs
-         ADD COLUMN IF NOT EXISTS tx_all_time BIGINT,
-         ADD COLUMN IF NOT EXISTS first_tx_at TIMESTAMPTZ`
-    );
+    // Columns are added manually by the DBA; the runtime role may not own the
+    // table. Try anyway, but tolerate the privilege error and keep going —
+    // the UPDATE below is what matters.
+    try {
+      await client.query(
+        `ALTER TABLE sonar.programs
+           ADD COLUMN IF NOT EXISTS tx_all_time BIGINT,
+           ADD COLUMN IF NOT EXISTS first_tx_at TIMESTAMPTZ`
+      );
+    } catch (e) {
+      console.log(`  · skipping ALTER TABLE (${e.message}) — assuming columns managed by DBA`);
+    }
     const firstTxAt = stats.oldestBlockTime != null ? new Date(stats.oldestBlockTime * 1000) : null;
     const res = await client.query(
       `UPDATE sonar.programs SET tx_all_time = $1, first_tx_at = $2 WHERE program_id = $3`,
