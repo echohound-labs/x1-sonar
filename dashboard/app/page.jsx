@@ -15,6 +15,7 @@ const COLS = [
   { key: "sonar_score", label: "Sonar Score", left: false },
   { key: "tx_count_24h", label: "TX 24h", left: false },
   { key: "tx_count_7d", label: "TX 7d", left: false },
+  { key: "tx_all_time", label: "TX All-Time", left: false },
   { key: "unique_signers_24h", label: "Signers 24h", left: false },
   { key: "success_rate_24h", label: "Success", left: false },
   { key: "sparkline", label: "7d Trend", left: false, nosort: true },
@@ -282,6 +283,9 @@ export default function Home() {
                   </td>
                   <td data-l="TX 24h">{Number(p.tx_count_24h).toLocaleString()}</td>
                   <td data-l="TX 7d">{Number(p.tx_count_7d).toLocaleString()}</td>
+                  <td data-l="TX All-Time" className={p.tx_all_time == null ? "dim" : undefined}>
+                    {p.tx_all_time == null ? "—" : Number(p.tx_all_time).toLocaleString()}
+                  </td>
                   <td data-l="Signers 24h">{Number(p.unique_signers_24h).toLocaleString()}</td>
                   <td
                     data-l="Success"

@@ -31,6 +31,7 @@ fastify.register(require('@fastify/cors'), { origin: true }); // public read-onl
 const PROGRAM_FIELDS = `
   program_id, first_seen_slot, first_seen_at, last_active_at,
   tx_count_24h, tx_count_7d, tx_count_all,
+  tx_all_time, first_tx_at,
   unique_signers_24h, unique_signers_7d,
   success_rate_24h, sonar_score, category, name, description, website, verified,
   upgrade_state, upgrade_authority, infrastructure
