@@ -3,15 +3,19 @@
 // registry.json and dashboard/registry.json, print the additions, then clear
 // pending. Run manually after approving programs in Telegram:
 //
-//   node apply-pending.js
+//   node apply-pending.js [path/to/pending-registry.json]
 //
-// All writes are atomic (write .tmp, then rename over the target) so a crash
-// mid-write never corrupts a registry or the pending file.
+// The optional path lets you point at a pending file you saved locally from the
+// Telegram snapshot (default ./pending-registry.json). All writes are atomic
+// (write .tmp, then rename over the target) so a crash mid-write never corrupts
+// a registry or the pending file.
 
 const fs = require('fs');
 const path = require('path');
 
-const PENDING_FILE = path.join(__dirname, 'pending-registry.json');
+const PENDING_FILE = process.argv[2]
+  ? path.resolve(process.argv[2])
+  : path.join(__dirname, 'pending-registry.json');
 const REGISTRIES = [
   path.join(__dirname, 'registry.json'),
   path.join(__dirname, 'dashboard', 'registry.json'),
@@ -33,9 +37,10 @@ function writeJsonAtomic(file, obj) {
 function main() {
   const pending = readJson(PENDING_FILE, null);
   if (!pending || typeof pending !== 'object') {
-    console.log('No pending-registry.json (or unreadable) — nothing to apply.');
+    console.log(`No pending file at ${PENDING_FILE} (or unreadable) — nothing to apply.`);
     return;
   }
+  console.log(`pending: ${PENDING_FILE}`);
   const entries = Object.entries(pending).filter(([k]) => !k.startsWith('_'));
   if (!entries.length) {
     console.log('pending-registry.json is empty — nothing to apply.');

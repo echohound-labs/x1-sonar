@@ -45,6 +45,12 @@ const REGISTRY_FILE = path.join(__dirname, 'registry.json');
 const API = `https://api.telegram.org/bot${TOKEN}`;
 const UPGRADEABLE_LOADER = 'BPFLoaderUpgradeab1e11111111111111111111111';
 
+// The public channel layer is active only when SONAR_CHANNEL is set AND is a
+// different chat from the admin. Otherwise the "channel" IS the admin DM and we
+// must not double-post there.
+const CHANNEL_IS_PUBLIC = !!CHANNEL && String(CHANNEL) !== String(ADMIN);
+const DOC_THRESHOLD = 3500; // pending JSON longer than this goes as a document
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const log = (...a) => console.log(new Date().toISOString(), ...a);
 
@@ -104,6 +110,23 @@ async function tg(method, body, timeoutMs = 15000) {
     return j.result;
   } catch (e) {
     log(`tg ${method} failed:`, e.message);
+    return null;
+  }
+}
+
+// Upload a text file via sendDocument (multipart). Never throws; null on fail.
+async function tgDocument(chatId, filename, content, caption) {
+  try {
+    const form = new FormData();
+    form.append('chat_id', String(chatId));
+    if (caption) form.append('caption', caption);
+    form.append('document', new Blob([content], { type: 'application/json' }), filename);
+    const res = await fetch(`${API}/sendDocument`, { method: 'POST', body: form });
+    const j = await res.json();
+    if (!j.ok) { log('tg sendDocument error:', j.description); return null; }
+    return j.result;
+  } catch (e) {
+    log('tg sendDocument failed:', e.message);
     return null;
   }
 }
@@ -360,11 +383,14 @@ function formatBoard(rows, prevTop, title) {
   return `<b>${esc(title)}</b>\n<pre>${esc(lines.join('\n'))}</pre>\nFull board → x1sonar.xyz`;
 }
 
+const fmtFirstSeen = (row) => (row && row.first_seen_at
+  ? new Date(row.first_seen_at).toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
+  : 'unknown');
+const fmtTxTotal = (row) => (row && row.tx_total != null ? Number(row.tx_total).toLocaleString() : '?');
+
 function buildProposal(id, row, ev, sug) {
-  const firstSeen = row && row.first_seen_at
-    ? new Date(row.first_seen_at).toISOString().replace('T', ' ').slice(0, 16) + ' UTC'
-    : 'unknown';
-  const txTotal = row && row.tx_total != null ? Number(row.tx_total).toLocaleString() : '?';
+  const firstSeen = fmtFirstSeen(row);
+  const txTotal = fmtTxTotal(row);
 
   const lines = [];
   if (ev.security.name) lines.push(`security.txt name: ${ev.security.name}`);
@@ -398,22 +424,42 @@ async function proposeProgram(id) {
   const row = await getProgramRow(id);
   const text = buildProposal(id, row, ev, sug);
 
+  // BUG 2: a low-confidence / unnamed suggestion must NOT be one-tap approvable.
+  // Replace the ✅ Approve button with an informational button; reply-override
+  // ("Name | Category") becomes the only approval path for these.
+  const needsName = sug.name === 'Unknown' || sug.confidence === 'Low';
+  const inline_keyboard = needsName
+    ? [
+        [{ text: '✏️ Needs name — reply Name | Category', callback_data: `nn:${id}` }],
+        [{ text: '❌ Skip', callback_data: `sk:${id}` }],
+      ]
+    : [[
+        { text: '✅ Approve', callback_data: `ap:${id}` },
+        { text: '❌ Skip', callback_data: `sk:${id}` },
+      ]];
+
   const res = await tg('sendMessage', {
-    chat_id: ADMIN,
+    chat_id: ADMIN, // admin proposals with buttons go ONLY to the admin
     text,
     parse_mode: 'HTML',
     disable_web_page_preview: true,
-    reply_markup: {
-      inline_keyboard: [[
-        { text: '✅ Approve', callback_data: `ap:${id}` },
-        { text: '❌ Skip', callback_data: `sk:${id}` },
-      ]],
-    },
+    reply_markup: { inline_keyboard },
   });
   if (!res) return false; // send failed — leave untracked so we retry next cycle
 
+  // BUG 1: persist the message_id → program_id mapping to disk IMMEDIATELY,
+  // before proposing the next candidate. The old code only flushed once at the
+  // end of scan(), so a crash/restart or an intervening saveState() mid-scan
+  // could leave a PARTIAL proposals map on disk — replies to the not-yet-saved
+  // proposals then missed the lookup forever (first reply worked, rest didn't).
   state.programs[id] = { status: 'proposed', proposedAt: Date.now(), messageId: res.message_id, suggested: sug };
   state.proposals[String(res.message_id)] = id;
+  saveState();
+  log(`proposed ${id} (msg ${res.message_id}, ${sug.confidence}${needsName ? ', needs-name' : ''})`);
+
+  // Channel layer: a new program is a FACT — post it immediately, address-only,
+  // never the suggested name (names are claims that wait for approval).
+  await channelPostNew(id, row);
   return true;
 }
 
@@ -437,11 +483,19 @@ async function approve(id, override, chatId, messageId) {
     'Added to pending-registry.json (registry.json untouched).',
     'Next, run for the genesis baseline:',
     `<code>node backfill.js ${esc(id)} --commit</code>`,
-    'Then apply the registry additions:',
+    'Then apply the registry additions locally:',
     '<code>node apply-pending.js</code>',
   ].join('\n');
   await tg('editMessageText', { chat_id: chatId, message_id: messageId, text, parse_mode: 'HTML', disable_web_page_preview: true });
   log(`approved ${id} as "${name}" / ${category}`);
+
+  // BUG 3: the admin's shell user can't read /home/bots, so ship the full
+  // current pending-registry.json to the admin chat every time it changes —
+  // they run apply-pending locally by pasting/saving it.
+  await sendPendingSnapshot();
+
+  // Channel layer: announce the identification (name is now a vetted claim).
+  await channelPostIdentified(id, name, category);
 }
 
 async function skipProgram(id, chatId, messageId) {
@@ -452,6 +506,45 @@ async function skipProgram(id, chatId, messageId) {
     text: `❌ <b>Skipped</b>\n<code>${esc(id)}</code>`,
   });
   log(`skipped ${id}`);
+}
+
+// ── channel layer (public) + pending snapshot (admin) ────────
+async function channelPostNew(id, row) {
+  if (!CHANNEL_IS_PUBLIC) return;
+  const text = [
+    '🆕 <b>New program detected on X1</b>',
+    `<code>${esc(id)}</code>`,
+    `first seen: ${esc(fmtFirstSeen(row))}`,
+    `tx (all-time): ${esc(fmtTxTotal(row))}`,
+  ].join('\n');
+  await tg('sendMessage', { chat_id: CHANNEL, text, parse_mode: 'HTML', disable_web_page_preview: true });
+}
+
+async function channelPostIdentified(id, name, category) {
+  if (!CHANNEL_IS_PUBLIC) return;
+  const text = [
+    `📛 <b>Identified:</b> ${esc(name)} (${esc(category)})`,
+    `<code>${esc(id)}</code>`,
+  ].join('\n');
+  await tg('sendMessage', { chat_id: CHANNEL, text, parse_mode: 'HTML', disable_web_page_preview: true });
+}
+
+// Ship the full current pending-registry.json to the admin chat (code block, or
+// a document when it would exceed Telegram's practical message length).
+async function sendPendingSnapshot() {
+  const pending = readJson(PENDING_FILE, {});
+  const json = JSON.stringify(pending, null, 2);
+  const n = Object.keys(pending).filter((k) => !k.startsWith('_')).length;
+  const plural = n === 1 ? 'y' : 'ies';
+  if (json.length > DOC_THRESHOLD) {
+    await tgDocument(ADMIN, 'pending-registry.json', json,
+      `pending-registry.json (${n} entr${plural}) — save locally, then: node apply-pending.js <path>`);
+  } else {
+    await tg('sendMessage', {
+      chat_id: ADMIN, parse_mode: 'HTML', disable_web_page_preview: true,
+      text: `📄 <b>pending-registry.json</b> (${n} entr${plural}) — save locally & run <code>node apply-pending.js</code>:\n<pre>${esc(json)}</pre>`,
+    });
+  }
 }
 
 async function scan() {
@@ -519,6 +612,14 @@ async function handleCallback(cq) {
   } else if (action === 'sk' && id) {
     await skipProgram(id, cq.message.chat.id, cq.message.message_id);
     await tg('answerCallbackQuery', { callback_query_id: cq.id, text: 'Skipped' });
+  } else if (action === 'nn' && id) {
+    // BUG 2: low-confidence/unnamed — no one-tap approve. Explain and wait for
+    // a reply-override instead.
+    await tg('answerCallbackQuery', {
+      callback_query_id: cq.id, show_alert: true,
+      text: 'Low-confidence suggestion — reply "Name | Category" to this message to approve it.',
+    });
+    log(`needs-name tapped for ${id} — awaiting reply-override`);
   } else {
     await tg('answerCallbackQuery', { callback_query_id: cq.id });
   }
@@ -540,12 +641,27 @@ async function handleMessage(msg) {
     return;
   }
 
-  // "Name | Category" reply to a proposal — admin only
-  if (chatId === String(ADMIN) && msg.reply_to_message && text.includes('|')) {
-    const id = state.proposals[String(msg.reply_to_message.message_id)];
-    if (id) {
-      const [name, category] = text.split('|').map((s) => s.trim());
-      if (name) await approve(id, { name, category: category || undefined }, msg.chat.id, msg.reply_to_message.message_id);
+  // Reply to a proposal — admin only. BUG 1: log EVERY reply with an outcome,
+  // matched or unmatched, so a miss can never again fail silently.
+  if (msg.reply_to_message) {
+    const rid = String(msg.reply_to_message.message_id);
+    if (chatId !== String(ADMIN)) {
+      log(`reply ignored: from non-admin chat ${chatId} (reply-to msg ${rid})`);
+    } else {
+      const id = state.proposals[rid];
+      if (!id) {
+        log(`reply ignored: reply-to msg ${rid} not in proposals map (not a proposal, or proposed before a restart)`);
+      } else if (!text.includes('|')) {
+        log(`reply ignored: matched proposal ${id} but no "Name | Category" separator (text: ${JSON.stringify(text.slice(0, 60))})`);
+      } else {
+        const [name, category] = text.split('|').map((s) => s.trim());
+        if (!name) {
+          log(`reply ignored: matched proposal ${id} but empty name`);
+        } else {
+          log(`reply matched proposal ${id} → approving as "${name}" / ${category || '(keep suggested category)'}`);
+          await approve(id, { name, category: category || undefined }, msg.chat.id, msg.reply_to_message.message_id);
+        }
+      }
     }
   }
 }
