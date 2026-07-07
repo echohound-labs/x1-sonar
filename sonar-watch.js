@@ -81,8 +81,14 @@ let state = readJson(STATE_FILE, null) || {
   offset: 0,
   programs: {},   // programId -> { status, proposedAt, messageId, suggested, approved }
   proposals: {},  // messageId  -> programId (for "Name | Category" replies)
-  lastPost: null, // { date, top: [{program_id,name,score}] }
+  board: null,    // { messageId, date, top: [{program_id,name,score}] } — the pinned live leaderboard
 };
+// Migrate the pre-pinned-board shape (lastPost had no messageId): keep its top
+// as the movement baseline; the missing messageId forces a fresh post + pin.
+if (state.lastPost && !state.board) {
+  state.board = { messageId: null, date: null, top: state.lastPost.top };
+}
+delete state.lastPost;
 function saveState() {
   try {
     writeJsonAtomic(STATE_FILE, state);
@@ -91,8 +97,11 @@ function saveState() {
   }
 }
 
-// ── Telegram API (never throws; returns null on any failure) ──
-async function tg(method, body, timeoutMs = 15000) {
+// ── Telegram API ─────────────────────────────────────────────
+// tgCall returns the raw parsed response ({ ok, result } or { ok:false,
+// description }), or null on a network-level failure — callers that need to
+// inspect the error (e.g. "message to edit not found") use this.
+async function tgCall(method, body, timeoutMs = 15000) {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), timeoutMs);
@@ -103,16 +112,23 @@ async function tg(method, body, timeoutMs = 15000) {
       signal: ctrl.signal,
     });
     clearTimeout(t);
-    const j = await res.json();
-    if (!j.ok) {
-      log(`tg ${method} error:`, j.description);
-      return null;
-    }
-    return j.result;
+    return await res.json();
   } catch (e) {
     log(`tg ${method} failed:`, e.message);
     return null;
   }
+}
+
+// tg is the convenience wrapper: returns result on success, null on any failure
+// (logging the error). Never throws.
+async function tg(method, body, timeoutMs = 15000) {
+  const j = await tgCall(method, body, timeoutMs);
+  if (!j) return null;
+  if (!j.ok) {
+    log(`tg ${method} error:`, j.description);
+    return null;
+  }
+  return j.result;
 }
 
 // Upload a text file via sendDocument (multipart). Never throws; null on fail.
@@ -365,7 +381,7 @@ async function topTen() {
 const esc = (s) => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-function formatBoard(rows, prevTop, title) {
+function formatBoard(rows, prevTop, title, updatedDate) {
   const prev = new Map((prevTop || []).map((p, i) => [p.program_id, i + 1]));
   const hadPrev = prevTop && prevTop.length > 0;
   const lines = rows.map((r, i) => {
@@ -381,7 +397,8 @@ function formatBoard(rows, prevTop, title) {
     const score = Number(r.sonar_score || 0).toFixed(1);
     return `${String(rank).padStart(2)}. ${name.padEnd(18)} ${score.padStart(6)}  ${mv}`;
   });
-  return `<b>${esc(title)}</b>\n<pre>${esc(lines.join('\n'))}</pre>\nFull board → x1sonar.xyz`;
+  const footer = updatedDate ? `\nupdated ${esc(updatedDate)}` : '';
+  return `<b>${esc(title)}</b>\n<pre>${esc(lines.join('\n'))}</pre>\nFull board → x1sonar.xyz${footer}`;
 }
 
 const fmtFirstSeen = (row) => (row && row.first_seen_at
@@ -655,27 +672,55 @@ async function scan() {
   }
 }
 
-// ── daily leaderboard post ───────────────────────────────────
+// ── daily live leaderboard (single pinned message, edited in place) ──
+async function postAndPinBoard(text, today, snapshot) {
+  const res = await tg('sendMessage', { chat_id: CHANNEL, text, parse_mode: 'HTML', disable_web_page_preview: true });
+  if (!res) return false; // send failed — retry on the next minute tick (same hour)
+  // Pin silently. If pinning fails (e.g. missing admin rights) we still keep the
+  // message and its id — the daily edit works regardless of pin state.
+  await tg('pinChatMessage', { chat_id: CHANNEL, message_id: res.message_id, disable_notification: true });
+  state.board = { messageId: res.message_id, date: today, top: snapshot };
+  saveState();
+  log(`posted + pinned live leaderboard (msg ${res.message_id})`);
+  return true;
+}
+
 async function maybePost() {
   try {
     const now = new Date();
     if (now.getUTCHours() !== POST_HOUR) return;
     const today = now.toISOString().slice(0, 10);
-    if (state.lastPost && state.lastPost.date === today) return;
+    const board = state.board;
+    if (board && board.date === today) return; // already refreshed today
 
     const rows = await topTen();
     if (!rows.length) return;
 
-    const text = formatBoard(rows, state.lastPost && state.lastPost.top, 'X1 Sonar — Daily Top 10');
-    const res = await tg('sendMessage', { chat_id: CHANNEL, text, parse_mode: 'HTML', disable_web_page_preview: true });
-    if (!res) return; // failed — retry on the next minute tick (same hour)
+    const text = formatBoard(rows, board && board.top, 'X1 Sonar — Live Top 10', today);
+    const snapshot = rows.map((r) => ({ program_id: r.program_id, name: r.name, score: r.sonar_score }));
 
-    state.lastPost = {
-      date: today,
-      top: rows.map((r) => ({ program_id: r.program_id, name: r.name, score: r.sonar_score })),
-    };
-    saveState();
-    log(`posted daily top-10 to ${CHANNEL}`);
+    // Existing pinned message → edit it in place.
+    if (board && board.messageId) {
+      const j = await tgCall('editMessageText', {
+        chat_id: CHANNEL, message_id: board.messageId, text,
+        parse_mode: 'HTML', disable_web_page_preview: true,
+      });
+      if (j && j.ok) {
+        state.board = { messageId: board.messageId, date: today, top: snapshot };
+        saveState();
+        log(`edited live leaderboard (msg ${board.messageId})`);
+        return;
+      }
+      const desc = (j && j.description) || 'network error';
+      // Only a genuinely gone/uneditable message justifies a repost; a transient
+      // error just waits for the next tick so we don't spawn a duplicate pin.
+      const gone = /not found|can'?t be edited|message to edit|MESSAGE_ID_INVALID|to be edited was not found/i.test(desc);
+      if (!gone) { log(`live leaderboard edit failed transiently (${desc}) — retrying next tick`); return; }
+      log(`live leaderboard message gone (${desc}) — reposting + pinning a fresh one`);
+    }
+
+    // First run, or the pinned message was deleted → post + pin a new one.
+    await postAndPinBoard(text, today, snapshot);
   } catch (e) {
     log('maybePost failed:', e.message);
   }
@@ -717,7 +762,7 @@ async function handleMessage(msg) {
     const rows = await topTen();
     await tg('sendMessage', {
       chat_id: msg.chat.id,
-      text: formatBoard(rows, state.lastPost && state.lastPost.top, 'X1 Sonar — Top 10'),
+      text: formatBoard(rows, state.board && state.board.top, 'X1 Sonar — Top 10'),
       parse_mode: 'HTML',
       disable_web_page_preview: true,
     });
