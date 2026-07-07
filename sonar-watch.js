@@ -23,6 +23,7 @@
 require('dotenv').config();
 const fs = require('fs');
 const path = require('path');
+const { spawn } = require('child_process');
 const { Pool } = require('pg');
 
 // ── config ───────────────────────────────────────────────────
@@ -496,6 +497,9 @@ async function approve(id, override, chatId, messageId) {
 
   // Channel layer: announce the identification (name is now a vetted claim).
   await channelPostIdentified(id, name, category);
+
+  // Auto-run the genesis backfill in the background (skips if already walked).
+  await maybeQueueBackfill(id);
 }
 
 async function skipProgram(id, chatId, messageId) {
@@ -543,6 +547,85 @@ async function sendPendingSnapshot() {
     await tg('sendMessage', {
       chat_id: ADMIN, parse_mode: 'HTML', disable_web_page_preview: true,
       text: `📄 <b>pending-registry.json</b> (${n} entr${plural}) — save locally & run <code>node apply-pending.js</code>:\n<pre>${esc(json)}</pre>`,
+    });
+  }
+}
+
+// ── genesis backfill (auto-run on approval, one at a time) ───
+// On approval we walk the program's full history via `node backfill.js <id>
+// --commit` in a detached child, but only if it has never been walked
+// (first_tx_at IS NULL). At most one walk runs at a time; concurrent approvals
+// queue behind it.
+const backfillQueue = [];
+let backfillRunning = false;
+
+async function maybeQueueBackfill(id) {
+  try {
+    const { rows } = await pool.query(
+      `SELECT first_tx_at FROM sonar.programs WHERE program_id = $1`, [id]);
+    if (!rows.length) { log(`backfill skip ${id}: no sonar.programs row`); return; }
+    if (rows[0].first_tx_at != null) { log(`backfill skip ${id}: already walked (first_tx_at set)`); return; }
+  } catch (e) {
+    log(`backfill precheck failed for ${id}:`, e.message);
+    return;
+  }
+  if (backfillQueue.includes(id)) return; // dedupe rapid re-approvals
+  backfillQueue.push(id);
+  log(`backfill queued ${id} (${backfillQueue.length} waiting)`);
+  drainBackfillQueue();
+}
+
+function drainBackfillQueue() {
+  if (backfillRunning) return;
+  const id = backfillQueue.shift();
+  if (!id) return;
+  backfillRunning = true;
+  log(`backfill starting genesis walk for ${id}`);
+
+  let child;
+  let out = '';
+  let err = '';
+  try {
+    child = spawn('node', ['backfill.js', id, '--commit'], {
+      cwd: __dirname,
+      detached: true, // own process group — doesn't block or ride the poll loop
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+  } catch (e) {
+    log(`backfill spawn failed for ${id}:`, e.message);
+    backfillRunning = false;
+    drainBackfillQueue();
+    return;
+  }
+
+  child.stdout.on('data', (d) => { out += d.toString(); });
+  child.stderr.on('data', (d) => { err += d.toString(); });
+  child.on('error', (e) => { err += `spawn error: ${e.message}\n`; });
+  child.on('close', (code) => {
+    backfillRunning = false;
+    notifyBackfill(id, code, out, err).catch((e) => log('notifyBackfill failed:', e.message));
+    drainBackfillQueue(); // start the next queued walk, if any
+  });
+}
+
+async function notifyBackfill(id, code, out, err) {
+  if (code === 0) {
+    const mTotal = out.match(/total txs\s*:\s*(\d+)/);
+    const mOldest = out.match(/oldest tx\s*:\s*(\S+)/);
+    const total = mTotal ? Number(mTotal[1]).toLocaleString() : '?';
+    const oldest = mOldest && mOldest[1] !== '(unknown)' ? mOldest[1].slice(0, 10) : 'unknown';
+    log(`backfill done ${id}: ${total} txs since ${oldest}`);
+    await tg('sendMessage', {
+      chat_id: ADMIN, parse_mode: 'HTML', disable_web_page_preview: true,
+      text: `🧬 <b>Genesis walk done:</b> ${esc(total)} txs since ${esc(oldest)}\n<code>${esc(id)}</code>`,
+    });
+  } else {
+    const reason = (err.trim() || out.trim() || `exit code ${code}`)
+      .split('\n').filter(Boolean).slice(-3).join('\n').slice(0, 500);
+    log(`backfill failed ${id} (exit ${code}): ${reason}`);
+    await tg('sendMessage', {
+      chat_id: ADMIN, parse_mode: 'HTML', disable_web_page_preview: true,
+      text: `⚠️ <b>Genesis walk failed</b> for <code>${esc(id)}</code> (exit ${code}):\n<pre>${esc(reason)}</pre>`,
     });
   }
 }
