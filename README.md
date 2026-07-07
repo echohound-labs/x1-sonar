@@ -21,6 +21,20 @@
 - Never outruns confirmed tip; paced (CATCHUP_DELAY_MS) to protect the validator
 - Raw interactions retained ~8 days (aggregator, Step 3, handles rollup + pruning)
 
+## Methodology note — Sonar Score
+
+The Sonar Score ranks each program by its activity over the **trailing 30
+days**, combining:
+
+- **transaction volume** (log-scaled),
+- **unique signers** (log-scaled, weighted highest),
+- a **7-day liveness decay** (how recently it was last active), and
+- an **age bonus** (established programs edge out brand-new ones).
+
+Volume and signers are normalized to the chain max, so the score is relative:
+a program's rank reflects how it stacks up against the busiest program on X1,
+not an absolute count.
+
 ## Methodology note — v2 (CPI capture)
 
 As of v2, the indexer credits programs invoked via **inner instructions

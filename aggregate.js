@@ -65,6 +65,20 @@ async function aggregate() {
   const client = await pool.connect();
   const t0 = Date.now();
   try {
+    // 0. Ensure the 30-day columns exist. Added manually by the DBA (the
+    //    runtime role may lack ALTER), so try/catch like backfill.js — a
+    //    privileged role self-heals, everyone else no-ops. Done before BEGIN
+    //    so a privilege error can't abort the aggregation transaction.
+    try {
+      await client.query(
+        `ALTER TABLE sonar.programs
+           ADD COLUMN IF NOT EXISTS tx_count_30d BIGINT DEFAULT 0,
+           ADD COLUMN IF NOT EXISTS unique_signers_30d BIGINT DEFAULT 0`
+      );
+    } catch (e) {
+      console.log(`  · skipping ALTER TABLE (${e.message}) — assuming columns managed by DBA`);
+    }
+
     await client.query('BEGIN');
 
     // 1. Reset windowed counts, then fill from the raw table.
@@ -72,13 +86,15 @@ async function aggregate() {
     //    keeping stale counts forever.
     await client.query(`
       UPDATE sonar.programs SET
-        tx_count_24h = 0, tx_count_7d = 0,
-        unique_signers_24h = 0, unique_signers_7d = 0,
+        tx_count_24h = 0, tx_count_7d = 0, tx_count_30d = 0,
+        unique_signers_24h = 0, unique_signers_7d = 0, unique_signers_30d = 0,
         success_rate_24h = NULL
     `);
 
     await client.query(`
       UPDATE sonar.programs p SET
+        tx_count_30d       = a.tx_30d,
+        unique_signers_30d = a.signers_30d,
         tx_count_7d        = a.tx_7d,
         unique_signers_7d  = a.signers_7d,
         tx_count_24h       = a.tx_24h,
@@ -86,8 +102,10 @@ async function aggregate() {
         success_rate_24h   = a.success_rate_24h
       FROM (
         SELECT program_id,
-               COUNT(*)                                            AS tx_7d,
-               COUNT(DISTINCT signer)                              AS signers_7d,
+               COUNT(*)                                            AS tx_30d,
+               COUNT(DISTINCT signer)                              AS signers_30d,
+               COUNT(*)          FILTER (WHERE ts > NOW() - INTERVAL '7 days')  AS tx_7d,
+               COUNT(DISTINCT signer) FILTER (WHERE ts > NOW() - INTERVAL '7 days')  AS signers_7d,
                COUNT(*)          FILTER (WHERE ts > NOW() - INTERVAL '24 hours') AS tx_24h,
                COUNT(DISTINCT signer) FILTER (WHERE ts > NOW() - INTERVAL '24 hours') AS signers_24h,
                CASE WHEN COUNT(*) FILTER (WHERE ts > NOW() - INTERVAL '24 hours') > 0
@@ -95,26 +113,27 @@ async function aggregate() {
                        / (COUNT(*) FILTER (WHERE ts > NOW() - INTERVAL '24 hours'))
                     ELSE NULL END                                  AS success_rate_24h
         FROM sonar.interactions
-        WHERE ts > NOW() - INTERVAL '7 days'
+        WHERE ts > NOW() - INTERVAL '30 days'
         GROUP BY program_id
       ) a
       WHERE p.program_id = a.program_id
     `);
 
     // 2. Sonar Score (Theo's weights):
-    //    0.35 * log-normalized 7d tx
-    //  + 0.45 * log-normalized 7d signers
+    //    0.35 * log-normalized 30d tx
+    //  + 0.45 * log-normalized 30d signers
     //  + 0.15 * recency (linear decay over 7 days)
     //  + 0.05 * age bonus (1.0 if >30 days old, else 0.5)
-    //    NULLIF guards the all-zero cold-start case.
+    //    Volume + signers now range over the trailing 30 days; recency keeps
+    //    its 7-day liveness decay. NULLIF guards the all-zero cold-start case.
     await client.query(`
       WITH mx AS (
-        SELECT MAX(tx_count_7d) AS max_tx, MAX(unique_signers_7d) AS max_s
+        SELECT MAX(tx_count_30d) AS max_tx, MAX(unique_signers_30d) AS max_s
         FROM sonar.programs
       )
       UPDATE sonar.programs p SET sonar_score = ROUND((
-        0.35 * COALESCE(LN(p.tx_count_7d + 1) / NULLIF(LN(mx.max_tx + 1), 0), 0)
-      + 0.45 * COALESCE(LN(p.unique_signers_7d + 1) / NULLIF(LN(mx.max_s + 1), 0), 0)
+        0.35 * COALESCE(LN(p.tx_count_30d + 1) / NULLIF(LN(mx.max_tx + 1), 0), 0)
+      + 0.45 * COALESCE(LN(p.unique_signers_30d + 1) / NULLIF(LN(mx.max_s + 1), 0), 0)
       + 0.15 * GREATEST(0, 1 - EXTRACT(EPOCH FROM (NOW() - p.last_active_at)) / 604800.0)
       + 0.05 * CASE WHEN p.first_seen_at < NOW() - INTERVAL '30 days' THEN 1.0 ELSE 0.5 END
       )::numeric * 1000, 2)
