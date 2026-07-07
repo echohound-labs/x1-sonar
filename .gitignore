@@ -1,2 +1,6 @@
 node_modules/
 .env
+
+# sonar-watch runtime state (generated)
+watch-state.json
+pending-registry.json

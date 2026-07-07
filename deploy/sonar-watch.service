@@ -1,0 +1,22 @@
+# /etc/systemd/system/sonar-watch.service
+# Install:
+#   sudo cp deploy/sonar-watch.service /etc/systemd/system/
+#   sudo systemctl daemon-reload && sudo systemctl enable --now sonar-watch
+#
+# .env is loaded by dotenv inside sonar-watch.js, so no EnvironmentFile needed.
+[Unit]
+Description=X1 Sonar Telegram watch bot
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=bots
+WorkingDirectory=/home/bots/x1-sonar
+ExecStart=/usr/bin/node sonar-watch.js
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
