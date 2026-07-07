@@ -31,7 +31,7 @@ body {
 
 a { color: inherit; text-decoration: none; }
 
-.wrap { max-width: 1440px; margin: 0 auto; padding: 0 20px 80px; }
+.wrap { max-width: 1720px; margin: 0 auto; padding: 0 20px 80px; }
 
 /* ── Header ─────────────────────────────────────── */
 header {
@@ -156,6 +156,8 @@ thead th:hover { color: var(--text); }
 thead th.on { color: var(--ping); }
 thead th.left { text-align: left; }
 thead th .arrow { font-size: 9px; }
+/* Numeric columns are tight — trim their side padding so all fit without clipping */
+thead th:not(.left), tbody td:not(.left) { padding-left: 8px; padding-right: 8px; }
 
 tbody td {
   padding: 9px 11px;
