@@ -234,5 +234,33 @@
   "CKZHwoUZTJEnGNK4piPxyysrhwLKnnrNoBmEHM9rLaD4": {
     "name": "Labwork Marketplace",
     "category": "Marketplace"
+  },
+  "BSKTJpgAGHRaSMLA88chYPKuSuD9qbesEcHYmUrBWU7R": {
+    "name": "Entropy Engine Validator Pool",
+    "category": "Oracle"
+  },
+  "FDyWtM9UBNfXNuc5oZJ1V86d3dz635WnqMfX8x5Uifbm": {
+    "name": "Entropy Engine",
+    "category": "Oracle"
+  },
+  "oXpLqbxQmMNsa43t5DPBXj2KKCsujyw3K8HkezyyXoR": {
+    "name": "Price Oracle",
+    "category": "Oracle"
+  },
+  "2thzsm9z31MPEvDWHuuSGqAcjrr5ek4pS78EgPAT4Fch": {
+    "name": "X1 Strontium",
+    "category": "Oracle"
+  },
+  "FHqyYq2kQAGZp9mmXt8NxGGn9NTK17nGJ3DeZnfM2DLT": {
+    "name": "X1 Marketplace",
+    "category": "Marketplace"
+  },
+  "5rQBTqjPYU6tXp551oyJ6HfmAdSUTFz4vnR4Cp4wcwrZ": {
+    "name": "XDEX Limit Orders",
+    "category": "DEX"
+  },
+  "Bw84GDpz8d1XY8wsUMgFDeQQLmyUtKKFTAQSerfipjsg": {
+    "name": "Vero Staking",
+    "category": "Staking"
   }
 }
