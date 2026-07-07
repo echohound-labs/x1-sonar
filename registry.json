@@ -262,5 +262,13 @@
   "Bw84GDpz8d1XY8wsUMgFDeQQLmyUtKKFTAQSerfipjsg": {
     "name": "Vero Staking",
     "category": "Staking"
+  },
+  "nameQyUhZQQgnirGbbJRR9ECWSdq1W7mMaNUZZTBvtq": {
+    "name": "X1 Name Service",
+    "category": "Utility"
+  },
+  "X1NS1M4Lh9zwpYe7Mi2RKyy7QWq7dRtqyr7KxsLyUn5": {
+    "name": "X1NS Registrar",
+    "category": "Utility"
   }
 }
