@@ -32,7 +32,8 @@ const ADMIN = process.env.SONAR_ADMIN_CHAT;
 const CHANNEL = process.env.SONAR_CHANNEL || ADMIN;
 const DB_URL = process.env.DATABASE_URL;
 const RPC = process.env.X1_RPC_URL || 'http://localhost:8899';
-const POST_HOUR = parseInt(process.env.SONAR_POST_HOUR || '15', 10);
+const POST_HOUR = parseInt(process.env.SONAR_POST_HOUR || '15', 10); // daily movement-baseline roll hour (UTC)
+const BOARD_REFRESH_MIN = Math.max(1, parseInt(process.env.SONAR_BOARD_REFRESH_MIN || '10', 10) || 10);
 
 const SCAN_INTERVAL_MS = 10 * 60 * 1000; // approval scan cadence
 const PROPOSALS_PER_CYCLE = 5;           // cap per scan to avoid flooding
@@ -81,12 +82,20 @@ let state = readJson(STATE_FILE, null) || {
   offset: 0,
   programs: {},   // programId -> { status, proposedAt, messageId, suggested, approved }
   proposals: {},  // messageId  -> programId (for "Name | Category" replies)
-  board: null,    // { messageId, date, top: [{program_id,name,score}] } — the pinned live leaderboard
+  board: null,    // { messageId, lastSig } — the pinned live leaderboard message
+  baseline: null, // { date, top: [{program_id,name,score}] } — daily movement baseline
 };
-// Migrate the pre-pinned-board shape (lastPost had no messageId): keep its top
-// as the movement baseline; the missing messageId forces a fresh post + pin.
-if (state.lastPost && !state.board) {
-  state.board = { messageId: null, date: null, top: state.lastPost.top };
+// Migrate older shapes → { board:{messageId,lastSig}, baseline:{date,top} }.
+// The earlier `board`/`lastPost` carried the top list AND the message id; split
+// them: the top becomes the movement baseline, the message id keeps the pin.
+if (state.baseline === undefined) state.baseline = null;
+if (!state.baseline) {
+  const src = (state.board && state.board.top) ? state.board
+    : (state.lastPost && state.lastPost.top) ? state.lastPost : null;
+  if (src) state.baseline = { date: src.date || null, top: src.top };
+}
+if (state.board) {
+  state.board = { messageId: state.board.messageId || null, lastSig: null };
 }
 delete state.lastPost;
 function saveState() {
@@ -381,7 +390,7 @@ async function topTen() {
 const esc = (s) => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
-function formatBoard(rows, prevTop, title, updatedDate) {
+function formatBoard(rows, prevTop, title, footer) {
   const prev = new Map((prevTop || []).map((p, i) => [p.program_id, i + 1]));
   const hadPrev = prevTop && prevTop.length > 0;
   const lines = rows.map((r, i) => {
@@ -397,8 +406,8 @@ function formatBoard(rows, prevTop, title, updatedDate) {
     const score = Number(r.sonar_score || 0).toFixed(1);
     return `${String(rank).padStart(2)}. ${name.padEnd(18)} ${score.padStart(6)}  ${mv}`;
   });
-  const footer = updatedDate ? `\nupdated ${esc(updatedDate)}` : '';
-  return `<b>${esc(title)}</b>\n<pre>${esc(lines.join('\n'))}</pre>\nFull board → x1sonar.xyz${footer}`;
+  const extra = footer ? `\n${esc(footer)}` : '';
+  return `<b>${esc(title)}</b>\n<pre>${esc(lines.join('\n'))}</pre>\nFull board → x1sonar.xyz${extra}`;
 }
 
 const fmtFirstSeen = (row) => (row && row.first_seen_at
@@ -672,41 +681,70 @@ async function scan() {
   }
 }
 
-// ── daily live leaderboard (single pinned message, edited in place) ──
-async function postAndPinBoard(text, today, snapshot) {
+// ── live leaderboard (single pinned message, edited in place) ────────
+const BOARD_TITLE = 'X1 Sonar — Live Top 10';
+
+// Render the board. `hhmm` is the "updated" time in the footer; passing a fixed
+// token instead yields a timestamp-free signature for change detection.
+function renderBoard(rows, baselineTop, hhmm) {
+  const footer = `live · updated ${hhmm} UTC · movement vs yesterday`;
+  return formatBoard(rows, baselineTop, BOARD_TITLE, footer);
+}
+
+async function postAndPinBoard(text, sig) {
   const res = await tg('sendMessage', { chat_id: CHANNEL, text, parse_mode: 'HTML', disable_web_page_preview: true });
-  if (!res) return false; // send failed — retry on the next minute tick (same hour)
+  if (!res) return false; // send failed — retry on the next refresh tick
   // Pin silently. If pinning fails (e.g. missing admin rights) we still keep the
-  // message and its id — the daily edit works regardless of pin state.
+  // message and its id — the in-place edits work regardless of pin state.
   await tg('pinChatMessage', { chat_id: CHANNEL, message_id: res.message_id, disable_notification: true });
-  state.board = { messageId: res.message_id, date: today, top: snapshot };
+  state.board = { messageId: res.message_id, lastSig: sig };
   saveState();
   log(`posted + pinned live leaderboard (msg ${res.message_id})`);
   return true;
 }
 
-async function maybePost() {
+// Roll the movement baseline once per day at POST_HOUR. Arrows then read
+// "since this snapshot" — i.e. movement vs yesterday — while the board itself
+// keeps refreshing scores/ranks live.
+async function rollBaselineIfDue() {
   try {
     const now = new Date();
     if (now.getUTCHours() !== POST_HOUR) return;
     const today = now.toISOString().slice(0, 10);
-    const board = state.board;
-    if (board && board.date === today) return; // already refreshed today
-
+    if (state.baseline && state.baseline.date === today) return;
     const rows = await topTen();
     if (!rows.length) return;
+    state.baseline = {
+      date: today,
+      top: rows.map((r) => ({ program_id: r.program_id, name: r.name, score: r.sonar_score })),
+    };
+    saveState();
+    log(`rolled daily movement baseline (${today})`);
+  } catch (e) {
+    log('rollBaselineIfDue failed:', e.message);
+  }
+}
 
-    const text = formatBoard(rows, board && board.top, 'X1 Sonar — Live Top 10', today);
-    const snapshot = rows.map((r) => ({ program_id: r.program_id, name: r.name, score: r.sonar_score }));
+// Edit the pinned board with live standings. Skips the API call entirely when
+// the rendered board (ignoring the footer clock) is unchanged.
+async function refreshBoard() {
+  try {
+    const rows = await topTen();
+    if (!rows.length) return;
+    const baselineTop = state.baseline && state.baseline.top;
+    const sig = renderBoard(rows, baselineTop, ' CLOCK '); // timestamp-free signature
+    const hhmm = new Date().toISOString().slice(11, 16);
+    const board = state.board;
 
-    // Existing pinned message → edit it in place.
     if (board && board.messageId) {
+      if (board.lastSig === sig) return; // standings unchanged — no edit needed
+      const text = renderBoard(rows, baselineTop, hhmm);
       const j = await tgCall('editMessageText', {
         chat_id: CHANNEL, message_id: board.messageId, text,
         parse_mode: 'HTML', disable_web_page_preview: true,
       });
       if (j && j.ok) {
-        state.board = { messageId: board.messageId, date: today, top: snapshot };
+        state.board = { messageId: board.messageId, lastSig: sig };
         saveState();
         log(`edited live leaderboard (msg ${board.messageId})`);
         return;
@@ -720,9 +758,9 @@ async function maybePost() {
     }
 
     // First run, or the pinned message was deleted → post + pin a new one.
-    await postAndPinBoard(text, today, snapshot);
+    await postAndPinBoard(renderBoard(rows, baselineTop, hhmm), sig);
   } catch (e) {
-    log('maybePost failed:', e.message);
+    log('refreshBoard failed:', e.message);
   }
 }
 
@@ -762,7 +800,7 @@ async function handleMessage(msg) {
     const rows = await topTen();
     await tg('sendMessage', {
       chat_id: msg.chat.id,
-      text: formatBoard(rows, state.board && state.board.top, 'X1 Sonar — Top 10'),
+      text: formatBoard(rows, state.baseline && state.baseline.top, 'X1 Sonar — Top 10'),
       parse_mode: 'HTML',
       disable_web_page_preview: true,
     });
@@ -827,11 +865,12 @@ async function pollLoop() {
 }
 
 async function main() {
-  log(`sonar-watch starting — admin=${ADMIN} channel=${CHANNEL} post-hour=${POST_HOUR}h UTC`);
-  // periodic approval scan + daily-post minute tick
+  log(`sonar-watch starting — admin=${ADMIN} channel=${CHANNEL} baseline-hour=${POST_HOUR}h UTC board-refresh=${BOARD_REFRESH_MIN}min`);
   setInterval(() => { scan(); }, SCAN_INTERVAL_MS);
-  setInterval(() => { maybePost(); }, 60 * 1000);
-  setTimeout(() => { scan(); }, 5000); // first scan shortly after boot
+  setInterval(() => { rollBaselineIfDue(); }, 60 * 1000);       // check the daily baseline roll each minute
+  setInterval(() => { refreshBoard(); }, BOARD_REFRESH_MIN * 60 * 1000); // live board refresh
+  setTimeout(() => { scan(); }, 5000);                          // first scan shortly after boot
+  setTimeout(() => { rollBaselineIfDue().then(refreshBoard); }, 8000); // seed the pinned board on boot
   await pollLoop();
 }
 
