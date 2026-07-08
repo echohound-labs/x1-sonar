@@ -321,10 +321,7 @@ export default function Home() {
         <a href="https://github.com/echohound-labs/x1-sonar" target="_blank" rel="noopener noreferrer">
           open source
         </a>
-        <a href={`${API}/api/programs`} target="_blank" rel="noopener noreferrer">
-          public API
-        </a>
-        <a href="/agents">for agents</a>
+        <a href="/agents">public API</a>
       </footer>
     </div>
   );
