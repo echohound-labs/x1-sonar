@@ -127,13 +127,18 @@ export default function Agents() {
       </header>
 
       <div className="doc">
+        <p className="pagenote">
+          This page is Sonar&apos;s API — the same verified program data behind
+          x1sonar.xyz, packaged for agents, bots, and developers to consume
+          directly.
+        </p>
         <h1>
-          X1 Sonar <span className="accent">for Agents</span>
+          The complete map of X1 <span className="accent">— for machines.</span>
         </h1>
         <p className="lede">
-          Agents land on X1 blind. Sonar is the map — every program named,
-          verified, and measured to its genesis transaction. One GET request. No
-          subscription, no signature, no tiers. Free forever, MIT.
+          Every program on X1, not just the core set. Named, verified, and
+          measured back to its genesis transaction. One GET request — no
+          subscription, no on-chain signup, no tiers. Free and open source, MIT.
         </p>
 
         <h2>Start here — bootstrap</h2>

@@ -371,6 +371,15 @@ footer a:hover { color: var(--ping); }
   color: var(--ping);
   margin: 36px 0 8px;
 }
+.doc .pagenote {
+  color: var(--muted);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  max-width: 760px;
+  margin: 0 0 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--line);
+}
 .doc .lede {
   color: var(--text);
   font-size: 15px;
