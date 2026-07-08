@@ -51,12 +51,33 @@ header {
 .wordmark .x1 { color: var(--muted); }
 .wordmark .sonar { color: var(--ping); }
 
+.headmeta {
+  margin-left: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
 .tagline {
   color: var(--muted);
   font-size: 12px;
-  margin-left: auto;
   text-align: right;
 }
+.headlinks { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+.chip:hover { color: var(--ping); border-color: var(--ping-dim); }
 
 /* Radar — the signature */
 .radar {

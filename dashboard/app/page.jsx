@@ -158,10 +158,18 @@ export default function Home() {
         <div className="wordmark">
           <span className="x1">X1</span> <span className="sonar">SONAR</span>
         </div>
-        <div className="tagline">
-          See what&apos;s actually live on X1.
-          <br />
-          Every program, ranked by real on-chain activity.
+        <div className="headmeta">
+          <div className="tagline">
+            See what&apos;s actually live on X1.
+            <br />
+            Every program, ranked by real on-chain activity.
+          </div>
+          <div className="headlinks">
+            <a className="chip" href="/agents">🤖 Agents</a>
+            <a className="chip" href="https://t.me/x1sonar" target="_blank" rel="noopener noreferrer">
+              📡 Telegram
+            </a>
+          </div>
         </div>
       </header>
 

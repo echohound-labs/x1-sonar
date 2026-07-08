@@ -13,7 +13,7 @@ const BOOTSTRAP_SAMPLE = `{
   "chain": "X1",
   "license": "MIT",
   "generated_at": "2026-07-08T18:00:00.000Z",
-  "program_count": 87,
+  "program_count": 61,
   "docs": "https://x1sonar.xyz/agents",
   "programs": [
     {
@@ -22,11 +22,11 @@ const BOOTSTRAP_SAMPLE = `{
       "category": "DEX",
       "website": "https://xdex.xyz",
       "infrastructure": false,
-      "first_tx_at": "2025-03-12T04:21:08.000Z",
-      "tx_all_time": 128934,
-      "tx_30d": 41220,
-      "unique_signers_30d": 3187,
-      "sonar_score": 913.4,
+      "first_tx_at": "2025-12-01T09:14:32.000Z",
+      "tx_all_time": 854931,
+      "tx_30d": 121840,
+      "unique_signers_30d": 688,
+      "sonar_score": 944.6,
       "last_active_at": "2026-07-08T17:59:12.000Z"
     }
     // …one entry per tracked program, sonar_score desc
@@ -34,7 +34,7 @@ const BOOTSTRAP_SAMPLE = `{
 }`;
 
 const PROGRAMS_SAMPLE = `{
-  "total": 87,
+  "total": 61,
   "limit": 50,
   "offset": 0,
   "programs": [
@@ -43,15 +43,15 @@ const PROGRAMS_SAMPLE = `{
       "name": "XDEX",
       "category": "DEX",
       "rank": 1,
-      "sonar_score": 913.4,
-      "tx_count_24h": 1904,
-      "tx_count_30d": 41220,
-      "tx_all_time": 128934,
-      "unique_signers_30d": 3187,
-      "success_rate_24h": 0.98,
+      "sonar_score": 944.6,
+      "tx_count_24h": 4180,
+      "tx_count_30d": 121840,
+      "tx_all_time": 854931,
+      "unique_signers_30d": 688,
+      "success_rate_24h": 0.99,
       "infrastructure": false,
       "is_new": false,
-      "sparkline_7d": [5210, 6033, 5890, 6120, 7002, 6540, 6890]
+      "sparkline_7d": [3980, 4210, 3890, 4320, 4470, 4110, 4180]
     }
     // …
   ]
@@ -62,11 +62,11 @@ const PROGRAM_SAMPLE = `{
   "name": "XDEX",
   "category": "DEX",
   "website": "https://xdex.xyz",
-  "first_tx_at": "2025-03-12T04:21:08.000Z",
-  "tx_all_time": 128934,
-  "tx_count_30d": 41220,
-  "unique_signers_30d": 3187,
-  "sonar_score": 913.4,
+  "first_tx_at": "2025-12-01T09:14:32.000Z",
+  "tx_all_time": 854931,
+  "tx_count_30d": 121840,
+  "unique_signers_30d": 688,
+  "sonar_score": 944.6,
   "upgrade_state": "upgradeable",
   "infrastructure": false,
   "rank": 1
@@ -76,16 +76,16 @@ const HISTORY_SAMPLE = `{
   "program_id": "sEsYH97wqmfnkzHedjNcw3zyJdPvUmsa9AixhS4b4fN",
   "days": 30,
   "history": [
-    { "date": "2026-06-09", "tx_count": 1320, "unique_signers": 214 },
-    { "date": "2026-06-10", "tx_count": 1408, "unique_signers": 231 }
+    { "date": "2026-06-09", "tx_count": 3980, "unique_signers": 142 },
+    { "date": "2026-06-10", "tx_count": 4210, "unique_signers": 151 }
     // …one row per day
   ]
 }`;
 
 const STATS_SAMPLE = `{
-  "total_programs": 87,
-  "active_24h": 41,
-  "new_24h": 2,
+  "total_programs": 61,
+  "active_24h": 34,
+  "new_24h": 1,
   "tx_24h": 58211,
   "signers_24h": 4102
 }`;
