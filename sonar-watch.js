@@ -687,7 +687,7 @@ const BOARD_TITLE = 'X1 Sonar — Live Top 10';
 // Render the board. `hhmm` is the "updated" time in the footer; passing a fixed
 // token instead yields a timestamp-free signature for change detection.
 function renderBoard(rows, baselineTop, hhmm) {
-  const footer = `live · updated ${hhmm} UTC · movement vs yesterday`;
+  const footer = `live · updates every ${BOARD_REFRESH_MIN} min · updated ${hhmm} UTC · movement vs yesterday`;
   return formatBoard(rows, baselineTop, BOARD_TITLE, footer);
 }
 
