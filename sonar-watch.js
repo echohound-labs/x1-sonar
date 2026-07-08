@@ -25,6 +25,7 @@ const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
 const { Pool } = require('pg');
+const { deriveIdlAddress, parseIdlAccount } = require('./idl-audit');
 
 // ── config ───────────────────────────────────────────────────
 const TOKEN = process.env.SONAR_BOT_TOKEN;
@@ -252,10 +253,41 @@ function parseSecurityTxt(strings) {
   return out;
 }
 
+// Check for a published on-chain Anchor IDL FIRST — it's the strongest possible
+// identity signal (the program's own declared name). Never throws: a missing or
+// malformed IDL just leaves ev.idl null and we fall back to bytecode heuristics.
+async function gatherIdl(id) {
+  let idlAddr;
+  try {
+    idlAddr = await deriveIdlAddress(id);
+  } catch (e) {
+    return null; // not a valid pubkey — bytecode path will handle it too
+  }
+  const acct = await rpc('getAccountInfo', [idlAddr, { encoding: 'base64' }]);
+  if (!acct || !acct.value || !acct.value.data) return null;
+  try {
+    const buf = Buffer.from(acct.value.data[0], 'base64');
+    const parsed = parseIdlAccount(buf);
+    if (!parsed.name) return null; // an IDL with no usable name is no better than none
+    return parsed; // { name, metadataName, version, ixNames }
+  } catch (e) {
+    log(`idl unreadable for ${id}:`, e.message);
+    return null;
+  }
+}
+
 async function gatherEvidence(id) {
-  const ev = { strings: [], urls: [], security: {}, ixNames: [], locked: null };
+  const ev = { strings: [], urls: [], security: {}, ixNames: [], locked: null, idl: null };
+
+  // On-chain IDL first. If found, its instruction list also feeds category
+  // detection below.
+  ev.idl = await gatherIdl(id);
+
   const acct = await rpc('getAccountInfo', [id, { encoding: 'base64' }]);
-  if (!acct || !acct.value) return ev;
+  if (!acct || !acct.value) {
+    if (ev.idl && ev.idl.ixNames.length) ev.ixNames = ev.idl.ixNames.slice(0, 12);
+    return ev;
+  }
 
   let bytecode = null;
   if (acct.value.owner === UPGRADEABLE_LOADER) {
@@ -292,6 +324,11 @@ async function gatherEvidence(id) {
     }
   }
   ev.ixNames = [...ix].sort((a, b) => b[1] - a[1]).map(([n]) => n);
+  // The IDL's declared instruction list is authoritative; use it when the log
+  // scan came up empty.
+  if (!ev.ixNames.length && ev.idl && ev.idl.ixNames.length) {
+    ev.ixNames = ev.idl.ixNames.slice(0, 12);
+  }
   return ev;
 }
 
@@ -334,6 +371,17 @@ function deriveSuggestion(ev) {
   const website = ev.security.project_url
     || ev.urls.find((u) => !/github|gitlab|bitbucket/i.test(u))
     || null;
+
+  // On-chain IDL wins outright: the program declares its own name. Title-case it
+  // and mark High confidence regardless of other (weaker) signals.
+  if (ev.idl && ev.idl.name) {
+    return {
+      name: titleCase(ev.idl.name),
+      category,
+      confidence: 'High',
+      website,
+    };
+  }
 
   let name = null;
   if (ev.security.name) {
@@ -420,6 +468,10 @@ function buildProposal(id, row, ev, sug) {
   const txTotal = fmtTxTotal(row);
 
   const lines = [];
+  if (ev.idl && ev.idl.name) {
+    lines.push(`source: on-chain IDL`);
+    lines.push(`IDL name: ${ev.idl.name}${ev.idl.version ? ` (v${ev.idl.version})` : ''}`);
+  }
   if (ev.security.name) lines.push(`security.txt name: ${ev.security.name}`);
   if (ev.security.project_url) lines.push(`security.txt url: ${ev.security.project_url}`);
   if (ev.security.source_code) lines.push(`source: ${ev.security.source_code}`);
