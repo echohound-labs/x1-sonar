@@ -1,0 +1,27 @@
+# X1 Sonar
+
+X1 Sonar is the machine-readable map of the X1 blockchain: every on-chain
+program discovered, named, verified, and measured by real activity to its
+genesis transaction. Free, MIT-licensed, no auth, no rate tiers.
+
+Docs for agents: https://x1sonar.xyz/agents
+Base API URL: https://sonar-api.x1forge.xyz
+
+## Endpoints
+
+GET /api/agents/bootstrap - Start here. One object: every tracked program (infrastructure included and flagged), ordered by Sonar Score, with identity, category, website, activity to genesis, and score. Cached 60s.
+GET /api/programs - Paginated leaderboard. Query: sort, order, limit (<=200), offset, category, new=true. Includes rank and a 7-day sparkline.
+GET /api/programs/:id - Full detail for one program by base58 program id, including current rank.
+GET /api/programs/:id/history - Daily transaction and unique-signer counts. Query: days (1-365, default 30).
+GET /api/stats - Global chain totals (programs, active 24h, new 24h, tx 24h, signers 24h).
+
+## Detecting new deployments
+
+Poll /api/agents/bootstrap every few minutes and diff the set of program_id
+values against your last snapshot; any new id is a newly discovered program.
+Real-time deploy alerts are also posted to the Telegram channel https://t.me/x1sonar.
+
+## Meta
+
+License: MIT
+Contact: https://x1sonar.xyz

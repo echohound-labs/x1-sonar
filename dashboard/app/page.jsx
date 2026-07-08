@@ -316,6 +316,7 @@ export default function Home() {
         <a href={`${API}/api/programs`} target="_blank" rel="noopener noreferrer">
           public API
         </a>
+        <a href="/agents">for agents</a>
       </footer>
     </div>
   );

@@ -135,6 +135,48 @@ fastify.get('/api/stats', async () => {
   return rows[0];
 });
 
+// GET /api/agents/bootstrap — one-request, machine-readable map of every
+// tracked program (infrastructure included, flagged). Built for AI agents /
+// automations orienting on X1. Names/categories/websites come from the same
+// registry-merged columns the other endpoints read.
+fastify.get('/api/agents/bootstrap', async (req, reply) => {
+  const { rows } = await pool.query(
+    `SELECT program_id, name, category, website, infrastructure,
+            first_tx_at, tx_all_time, tx_count_30d AS tx_30d,
+            unique_signers_30d, sonar_score, last_active_at
+     FROM sonar.programs
+     ORDER BY sonar_score DESC NULLS LAST`
+  );
+
+  const programs = rows.map((r) => {
+    const p = {
+      program_id: r.program_id,
+      name: r.name,
+      category: r.category,
+    };
+    if (r.website) p.website = r.website;
+    p.infrastructure = r.infrastructure === true;
+    p.first_tx_at = r.first_tx_at;
+    p.tx_all_time = r.tx_all_time;
+    p.tx_30d = r.tx_30d;
+    p.unique_signers_30d = r.unique_signers_30d;
+    p.sonar_score = r.sonar_score;
+    p.last_active_at = r.last_active_at;
+    return p;
+  });
+
+  reply.header('Cache-Control', 'public, max-age=60');
+  return {
+    source: 'x1sonar.xyz',
+    chain: 'X1',
+    license: 'MIT',
+    generated_at: new Date().toISOString(),
+    program_count: programs.length,
+    docs: 'https://x1sonar.xyz/agents',
+    programs,
+  };
+});
+
 // GET /health — for monitoring
 fastify.get('/health', async () => {
   await pool.query('SELECT 1');
