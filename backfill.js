@@ -14,42 +14,75 @@
 //
 // Dry-run by default: prints totals, writes NOTHING without --commit.
 //
+// FULL mode is CHECKPOINTED: paging progress is persisted to
+// backfill-state-<PROGRAM_ID>.json every --checkpoint pages (default 25), so a
+// death on a huge program (Memo etc.) never loses everything — re-run with
+// --resume to continue from the last saved cursor. The state file is deleted on
+// successful completion. Failures are LOUD: any error prints a stack before exit.
+//
 // Usage:
-//   node backfill.js <PROGRAM_ID> [--days N] [--commit] [--rpc url] [--throttle ms]
+//   node backfill.js <PROGRAM_ID> [--days N] [--commit] [--resume]
+//                    [--checkpoint N] [--rpc url] [--throttle ms]
 
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const { Client } = require('pg');
 
 const DEFAULT_RPC = 'https://rpc.mainnet.x1.xyz';
 const DEFAULT_THROTTLE_MS = 250;
+const DEFAULT_CHECKPOINT_PAGES = 25; // persist FULL-walk progress every N pages
 const PAGE_LIMIT = 1000;         // getSignaturesForAddress max
-const MAX_ATTEMPTS = 5;          // retries per RPC call
+const MAX_ATTEMPTS = 5;          // retries per RPC call (getTransaction / batches)
 const BACKOFF_BASE_MS = 500;     // exponential backoff base
+const SIG_MAX_RETRIES = 5;       // getSignaturesForAddress: retries before giving up
+const SIG_BACKOFF_BASE_MS = 1000; // → 1s, 2s, 4s, 8s, 16s
 const BATCH_SIZE = 50;           // getTransaction calls per batched JSON-RPC POST (--days)
 const FALLBACK_BATCH_SIZE = 10;  // shrink to this if a full batch fails at the batch level
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 function parseArgs(argv) {
-  const opts = { programId: null, days: null, commit: false, rpc: DEFAULT_RPC, throttle: DEFAULT_THROTTLE_MS };
+  const opts = {
+    programId: null, days: null, commit: false, resume: false,
+    checkpoint: DEFAULT_CHECKPOINT_PAGES, rpc: DEFAULT_RPC, throttle: DEFAULT_THROTTLE_MS,
+  };
   const rest = argv.slice(2);
   for (let i = 0; i < rest.length; i++) {
     const a = rest[i];
     if (a === '--commit') opts.commit = true;
+    else if (a === '--resume') opts.resume = true;
     else if (a === '--days') opts.days = parseInt(rest[++i], 10);
+    else if (a === '--checkpoint') opts.checkpoint = parseInt(rest[++i], 10);
     else if (a === '--rpc') opts.rpc = rest[++i];
     else if (a === '--throttle') opts.throttle = parseInt(rest[++i], 10);
     else if (!a.startsWith('--') && !opts.programId) opts.programId = a;
     else { console.error(`unknown argument: ${a}`); process.exit(1); }
   }
+  if (!Number.isInteger(opts.checkpoint) || opts.checkpoint < 1) opts.checkpoint = DEFAULT_CHECKPOINT_PAGES;
   return opts;
 }
 
-// JSON-RPC call with exponential backoff on errors / 429s.
+// ── checkpoint state (FULL mode) — atomic JSON writes ────────
+const checkpointPath = (programId) => path.join(__dirname, `backfill-state-${programId}.json`);
+function readCheckpoint(file) {
+  try { return JSON.parse(fs.readFileSync(file, 'utf8')); } catch (e) { return null; }
+}
+function writeCheckpoint(file, obj) {
+  const tmp = `${file}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(obj, null, 2));
+  fs.renameSync(tmp, file); // atomic on the same filesystem
+}
+function deleteCheckpoint(file) {
+  try { fs.unlinkSync(file); } catch (e) { /* already gone */ }
+}
+
+// JSON-RPC call with exponential backoff on errors / 429s. maxAttempts can be
+// overridden (getSignaturesPage drives its own retry loop with maxAttempts:1).
 let rpcId = 0;
-async function rpc(url, method, params) {
+async function rpc(url, method, params, { maxAttempts = MAX_ATTEMPTS } = {}) {
   let lastErr;
-  for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
       const res = await fetch(url, {
         method: 'POST',
@@ -63,9 +96,29 @@ async function rpc(url, method, params) {
       return j.result;
     } catch (e) {
       lastErr = e;
-      if (attempt < MAX_ATTEMPTS - 1) {
+      if (attempt < maxAttempts - 1) {
         const backoff = BACKOFF_BASE_MS * Math.pow(2, attempt);
-        console.error(`  [retry ${attempt + 1}/${MAX_ATTEMPTS - 1}] ${method}: ${e.message} — backing off ${backoff}ms`);
+        console.error(`  [retry ${attempt + 1}/${maxAttempts - 1}] ${method}: ${e.message} — backing off ${backoff}ms`);
+        await sleep(backoff);
+      }
+    }
+  }
+  throw lastErr;
+}
+
+// One getSignaturesForAddress page, retried up to SIG_MAX_RETRIES times with
+// 1s/2s/4s/8s/16s backoff. When it finally gives up it throws — in FULL mode the
+// last checkpoint means --resume picks up from where we left off.
+async function getSignaturesPage(opts, params) {
+  let lastErr;
+  for (let attempt = 0; attempt <= SIG_MAX_RETRIES; attempt++) {
+    try {
+      return await rpc(opts.rpc, 'getSignaturesForAddress', params, { maxAttempts: 1 });
+    } catch (e) {
+      lastErr = e;
+      if (attempt < SIG_MAX_RETRIES) {
+        const backoff = SIG_BACKOFF_BASE_MS * Math.pow(2, attempt); // 1s,2s,4s,8s,16s
+        console.error(`  [sig retry ${attempt + 1}/${SIG_MAX_RETRIES}] getSignaturesForAddress: ${e.message} — backing off ${backoff}ms`);
         await sleep(backoff);
       }
     }
@@ -160,20 +213,42 @@ async function fetchTxBatch(opts, sigs) {
 const iso = (blockTime) => (blockTime != null ? new Date(blockTime * 1000).toISOString() : '(unknown)');
 
 // Page getSignaturesForAddress backward. `stopBefore` is an optional unix-seconds
-// cutoff (--days mode): once we cross it we stop. Returns collected stats and,
-// for --days mode, the in-window signature entries (needed for --commit).
-async function walk(opts, stopBefore) {
+// cutoff (--days mode): once we cross it we stop. `checkpoint` (FULL mode only)
+// is { path, everyPages, resume } — progress is persisted every `everyPages`
+// pages and, if `resume` holds a prior state, the walk continues from its cursor.
+// Returns collected stats and, for --days mode, the in-window signature entries.
+// Only running counters + the cursor are held in memory (FULL never buffers sigs).
+async function walk(opts, stopBefore, checkpoint) {
   let before;
   let page = 0;
   let total = 0, ok = 0, failed = 0;
   let oldestBlockTime = null;
   const windowSigs = [];
 
+  if (checkpoint && checkpoint.resume) {
+    const r = checkpoint.resume;
+    before = r.before_cursor || undefined;
+    page = r.pages || 0;
+    total = r.total || 0;
+    ok = r.ok || 0;
+    failed = r.failed || 0;
+    oldestBlockTime = r.oldest_ts != null ? r.oldest_ts : null;
+    console.log(`  ↻ resuming from page ${page} | ${total} txs so far | cursor ${before ? before.slice(0, 12) + '…' : '(start)'}`);
+  }
+
+  const saveCheckpoint = () => {
+    if (!checkpoint) return;
+    writeCheckpoint(checkpoint.path, {
+      before_cursor: before || null, pages: page, total, ok, failed, oldest_ts: oldestBlockTime,
+    });
+    console.log(`  ✓ checkpoint saved at page ${page} (${total} txs) → ${path.basename(checkpoint.path)}`);
+  };
+
   outer: while (true) {
     const params = [opts.programId, { limit: PAGE_LIMIT }];
     if (before) params[1].before = before;
 
-    const sigs = await rpc(opts.rpc, 'getSignaturesForAddress', params);
+    const sigs = await getSignaturesPage(opts, params);
     await sleep(opts.throttle);
     if (!sigs || sigs.length === 0) break;
 
@@ -195,6 +270,7 @@ async function walk(opts, stopBefore) {
     if (page % 5 === 0) {
       console.log(`  … page ${page} | ${total} txs so far | oldest ${iso(oldestBlockTime)}`);
     }
+    if (checkpoint && page % checkpoint.everyPages === 0) saveCheckpoint();
     if (sigs.length < PAGE_LIMIT) break; // short page = end of history
   }
 
@@ -274,7 +350,7 @@ async function commitDays(opts, stats) {
 async function main() {
   const opts = parseArgs(process.argv);
   if (!opts.programId) {
-    console.error('usage: node backfill.js <PROGRAM_ID> [--days N] [--commit] [--rpc url] [--throttle ms]');
+    console.error('usage: node backfill.js <PROGRAM_ID> [--days N] [--commit] [--resume] [--checkpoint N] [--rpc url] [--throttle ms]');
     process.exit(1);
   }
   if (opts.commit && !process.env.DATABASE_URL) {
@@ -282,45 +358,85 @@ async function main() {
     process.exit(1);
   }
 
-  const mode = opts.days != null ? `--days ${opts.days}` : 'FULL';
+  const isFull = opts.days == null;
+  const mode = isFull ? 'FULL' : `--days ${opts.days}`;
   console.log(`\nX1 Sonar backfill — ${mode}${opts.commit ? ' (COMMIT)' : ' (dry-run)'}`);
   console.log(`  program : ${opts.programId}`);
   console.log(`  rpc     : ${opts.rpc}`);
-  console.log(`  throttle: ${opts.throttle}ms\n`);
+  console.log(`  throttle: ${opts.throttle}ms`);
+
+  // Checkpointing is FULL-mode only. --days walks a bounded recent window and
+  // must buffer its signatures for --commit, so it stays exactly as before.
+  let checkpoint = null;
+  if (isFull) {
+    const file = checkpointPath(opts.programId);
+    let resume = null;
+    if (opts.resume) {
+      resume = readCheckpoint(file);
+      console.log(resume
+        ? `  resume  : ${path.basename(file)} — page ${resume.pages || 0}, ${resume.total || 0} txs`
+        : `  resume  : no state file at ${path.basename(file)} — starting fresh`);
+    }
+    checkpoint = { path: file, everyPages: opts.checkpoint, resume };
+    console.log(`  checkpt : every ${opts.checkpoint} pages → ${path.basename(file)}`);
+  } else if (opts.resume) {
+    console.log(`  note    : --resume ignored (only applies to FULL mode)`);
+  }
+  console.log();
 
   let stopBefore = null;
-  if (opts.days != null) {
+  if (!isFull) {
     stopBefore = Math.floor(Date.now() / 1000) - opts.days * 86400;
     console.log(`  cutoff  : ${iso(stopBefore)} (${opts.days} days back)\n`);
   }
 
-  const stats = await walk(opts, stopBefore);
+  const stats = await walk(opts, stopBefore, checkpoint);
 
   console.log(`\nResults:`);
   console.log(`  pages walked : ${stats.pages}`);
   console.log(`  total txs    : ${stats.total}`);
   console.log(`  ok / failed  : ${stats.ok} / ${stats.failed}`);
   console.log(`  oldest tx    : ${iso(stats.oldestBlockTime)}`);
-  if (opts.days != null) {
+  if (!isFull) {
     console.log(`  in-window    : ${stats.windowSigs.length} signatures`);
   }
 
   if (!opts.commit) {
     console.log(`\nDry-run — nothing written. Re-run with --commit to persist.\n`);
+    if (checkpoint) deleteCheckpoint(checkpoint.path); // walk completed — no resume needed
     return;
   }
 
   console.log(`\nCommitting…`);
-  if (opts.days != null) await commitDays(opts, stats);
+  if (!isFull) await commitDays(opts, stats);
   else await commitFull(opts, stats);
+
+  // Only reached on a fully successful walk + commit — safe to drop the state.
+  if (checkpoint) {
+    deleteCheckpoint(checkpoint.path);
+    console.log(`  ✓ removed checkpoint ${path.basename(checkpoint.path)}`);
+  }
   console.log();
 }
 
 if (require.main === module) {
+  // LOUD failure: a silent death must be impossible. Any unhandled error prints
+  // a full stack before exit.
+  process.on('unhandledRejection', (reason) => {
+    console.error('[backfill] UNHANDLED REJECTION:');
+    console.error(reason && reason.stack ? reason.stack : reason);
+    process.exit(1);
+  });
+  process.on('uncaughtException', (err) => {
+    console.error('[backfill] UNCAUGHT EXCEPTION:');
+    console.error(err && err.stack ? err.stack : err);
+    process.exit(1);
+  });
   main().catch((e) => {
-    console.error('[backfill] Fatal:', e.message);
+    console.error('[backfill] FATAL:');
+    console.error(e && e.stack ? e.stack : e);
     process.exit(1);
   });
 }
 
-module.exports = { parseArgs, walk };
+module.exports = { parseArgs, walk, readCheckpoint, writeCheckpoint, checkpointPath };

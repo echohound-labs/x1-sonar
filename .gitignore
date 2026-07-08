@@ -4,3 +4,6 @@ node_modules/
 # sonar-watch runtime state (generated)
 watch-state.json
 pending-registry.json
+
+# backfill FULL-mode checkpoints (generated)
+backfill-state-*.json
