@@ -164,6 +164,10 @@ export default function Home() {
             <br />
             Every program, ranked by real on-chain activity.
           </div>
+          <a className="apinote" href="/agents">
+            Building an agent or bot? Sonar has a machine-readable API{" "}
+            <span className="arrow">→</span>
+          </a>
           <div className="headlinks">
             <a className="chip" href="/agents">🤖 Agents</a>
             <a className="chip" href="https://t.me/x1sonar" target="_blank" rel="noopener noreferrer">

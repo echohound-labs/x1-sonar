@@ -63,6 +63,14 @@ header {
   font-size: 12px;
   text-align: right;
 }
+.apinote {
+  color: var(--muted);
+  font-size: 11px;
+  text-align: right;
+  margin-top: -2px;
+}
+.apinote:hover { color: var(--text); }
+.apinote .arrow { color: var(--ping); font-weight: 600; }
 .headlinks { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
 .chip {
   display: inline-flex;
