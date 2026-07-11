@@ -141,6 +141,19 @@ export default function Agents() {
           subscription, no on-chain signup, no tiers. Free and open source, MIT.
         </p>
 
+        <p className="signpost">
+          Building an agent? Give it a verifiable identity — register a Hound Tag{" "}
+          →{" "}
+          <a
+            className="inline"
+            href="https://houndtag.xyz"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            houndtag.xyz
+          </a>
+        </p>
+
         <h2>Start here — bootstrap</h2>
         <p>
           One call returns every tracked program (infrastructure included and
