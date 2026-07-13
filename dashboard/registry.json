@@ -125,7 +125,7 @@
   },
   "7aGaE2nGkjmwEWCg3YTyHt1qATQDdebVZbWVxPLrGkZ7": {
     "name": "X1 Agent Program",
-    "category": "Utility"
+    "category": "Agent"
   },
   "EHZfFVB38genhLo2VcWKmb5Cr3ESFxLJQ71FjtDdSWBc": {
     "name": "Jack Staking",
@@ -213,11 +213,11 @@
   },
   "HAWdiMtvTfiFhENgxPdWEgBQmoa3A5oN1KV9N3LSmxXz": {
     "name": "MIND Melt",
-    "category": "Staking"
+    "category": "Token"
   },
   "7D1RrSLwfamYwxxComyHxj1uXiuzwrcJphy1436Xvud2": {
     "name": "AgentID",
-    "category": "Utility"
+    "category": "Agent"
   },
   "E9QqBtLFqBnhoWyFQ69zUg4gjyiLhwKnEAtLHHRpRgKn": {
     "name": "Kryptark Treasury",
@@ -277,7 +277,7 @@
   },
   "4Ai4Ps8YsrLfshU9xvkf9pobiVhewELdbXEZA7zaZ8E3": {
     "name": "X1 Agents Radio",
-    "category": "Utility",
+    "category": "Agent",
     "website": "https://x1radio.vercel.app"
   },
   "AGAdJKoLhrGrdFwrZZDEWsoR1Tq8kMcXGRKxX2wa2jfm": {
@@ -286,7 +286,7 @@
   },
   "3zGSABr62ToeG6mC8kKzTpc5Y96AyDyTGHUS2BD3q8ee": {
     "name": "Hound Tag",
-    "category": "Utility",
+    "category": "Agent",
     "website": "https://houndtag.xyz"
   },
   "8sRwfdxG5fGtJvHKhkYXC7QVxfWAta4KkxgciWY8erc7": {
@@ -299,7 +299,7 @@
   },
   "834Z1EJhbQuhUJBD7apc3GKTHGYKN6Ya7Q9hghM7BgKU": {
     "name": "X1 Agent v2",
-    "category": "Utility"
+    "category": "Agent"
   },
   "2xXG9bbggrffG976okAbEHzw1BJgfA58d9zHTToke2Z6": {
     "name": "Swap Router",
