@@ -346,45 +346,121 @@ function domainName(url) {
   }
 }
 
-const CATEGORY_RULES = [
-  [/swap|liquid|amm|\brouter?\b|twap|\bdex\b|orderbook/i, 'DEX'],
-  [/unstake|\bstake\b|delegate|validator|\bfarm\b|reward/i, 'Staking'],
-  [/\bnft\b|metadata|edition|collection|royalt|mint.?nft/i, 'NFT'],
-  [/bridge|\bwrap\b|relay|cross.?chain/i, 'Bridge'],
-  [/\bgame\b|\bplay\b|\bbet\b|wager|lottery|battle|arena/i, 'Game'],
-  [/market|listing|auction|escrow/i, 'Marketplace'],
-  [/oracle|price.?feed|\bfeed\b/i, 'Oracle'],
-  [/mint|burn|\btoken\b|transfer/i, 'Token'],
-];
+// ── category heuristics ──────────────────────────────────────
+// Category is driven by INSTRUCTION NAMES first (specific, low-noise) and only
+// falls back to the bytecode string haystack. The original bug: a single
+// generic `hay` blob let common DeFi vocabulary (stake/reward/pool/deposit)
+// match the Staking rule for almost every program. The fix has three parts:
+//   (1) score instruction names by how many DISTINCT category-specific verbs
+//       they hit — the category with the most support wins;
+//   (2) treat Staking as a LAST RESORT that only wins when nothing else does,
+//       and require SPECIFIC staking evidence (stake_account/unstake/rewards),
+//       never bare stake/deposit/withdraw/pool;
+//   (3) collapse ambiguous or tied signals to Unknown so they route to the
+//       manual ✏️ Needs-name path rather than a wrong one-tap-approvable guess.
 
-function deriveSuggestion(ev) {
+// Instruction-name → category, in priority order. Staking is intentionally NOT
+// in this list; it is handled separately (below) and only wins when none of
+// these match, because generic stake vocabulary otherwise dominates.
+const IX_CATEGORY_SIGNALS = [
+  ['DEX',         [/swap/, /route/, /\bamm\b/, /orderbook/, /\bquote\b/]],
+  ['NFT',         [/mint_?nft/, /verify_?collection/, /\bedition\b/, /royalt/]],
+  ['Marketplace', [/\blist\b/, /\bbuy\b/, /delist/, /\bauction\b/, /make_?offer/]],
+  ['Oracle',      [/submit_?entropy/, /fulfill_?randomness/, /\bprice\b/, /price_?feed/]],
+  ['Utility',     [/register/, /resolve/, /subscribe/]],
+  ['Token',       [/burn_?and_?mint/, /\bclaim\b/, /\bmint\b/, /\bburn\b/]],
+  ['Game',        [/session/, /player/, /\bgame\b/, /\bmatch\b/]],
+  ['Agent',       [/\bagent\b/, /checkpoint/, /identity/]],
+];
+// Staking: only SPECIFIC evidence counts — not deposit/withdraw/pool.
+const STAKING_IX_SIGNALS = [/stake_?account/, /unstake/, /claim_?rewards/, /\bstake\b/, /reward/];
+
+// Bytecode-string fallback, used only when instruction names are inconclusive.
+// First match wins; Staking is checked LAST and demands compound tokens.
+const BYTECODE_CATEGORY_RULES = [
+  ['DEX',         /swap|liquid|\bamm\b|\brouter?\b|twap|\bdex\b|orderbook/i],
+  ['NFT',         /\bnft\b|verify_?collection|\bedition\b|royalt|mint_?nft/i],
+  ['Bridge',      /bridge|cross.?chain|\brelayer\b/i],
+  ['Marketplace', /listing|\bauction\b|escrow|marketplace/i],
+  ['Oracle',      /oracle|price.?feed|submit_?entropy|fulfill_?randomness/i],
+  ['Game',        /\bgame\b|wager|lottery|leaderboard/i],
+  ['Agent',       /\bagent\b|checkpoint|identity/i],
+  ['Token',       /burn_?and_?mint|mint_?to|\bairdrop\b/i],
+];
+const STAKING_BYTECODE = /stake_?account|unstake|claim_?rewards|reward_?pool|stake_?pool|deactivate_?stake|reward_?epoch|epoch_?reward/i;
+
+// Rank primary categories by how many distinct instruction names support each.
+// Returns { category, signals } — or null when instruction names are silent, or
+// { category: 'Unknown' } when the top two categories are tied (ambiguous).
+function categoryFromInstructions(names) {
+  const hits = new Map(); // category -> Set(matched instruction name)
+  for (const raw of names) {
+    const n = String(raw).toLowerCase();
+    for (const [cat, pats] of IX_CATEGORY_SIGNALS) {
+      if (pats.some((p) => p.test(n))) {
+        if (!hits.has(cat)) hits.set(cat, new Set());
+        hits.get(cat).add(n);
+      }
+    }
+  }
+  const ranked = [...hits.entries()]
+    .map(([cat, set]) => ({ category: cat, signals: [...set], score: set.size }))
+    .sort((a, b) => b.score - a.score);
+  if (ranked.length) {
+    // A tie at the top means two categories are equally supported — ambiguous.
+    if (ranked.length > 1 && ranked[1].score === ranked[0].score) {
+      return { category: 'Unknown', signals: [] };
+    }
+    return { category: ranked[0].category, signals: ranked[0].signals };
+  }
+  // No primary category matched — Staking is the last resort, specific only.
+  const stakeSignals = [...new Set(names
+    .map((n) => String(n).toLowerCase())
+    .filter((n) => STAKING_IX_SIGNALS.some((p) => p.test(n))))];
+  if (stakeSignals.length) return { category: 'Staking', signals: stakeSignals };
+  return null; // instruction names told us nothing
+}
+
+function categoryFromBytecode(hay) {
+  for (const [cat, re] of BYTECODE_CATEGORY_RULES) {
+    const m = hay.match(re);
+    if (m) return { category: cat, signals: [m[0].toLowerCase()] };
+  }
+  const sm = hay.match(STAKING_BYTECODE);
+  if (sm) return { category: 'Staking', signals: [sm[0].toLowerCase()] };
+  return { category: 'Unknown', signals: [] };
+}
+
+// Instruction names (from the IDL or observed in tx logs) are the specific,
+// low-noise signal — try them first. Only when they are silent do we fall back
+// to the noisy bytecode-string haystack. An ambiguous/tied instruction verdict
+// is decisive on its own (returns Unknown) — we do NOT then re-guess from the
+// haystack, which is exactly what re-introduced the original bug.
+function deriveCategory(ev) {
+  const ixNames = [...new Set([...(ev.idl?.ixNames || []), ...(ev.ixNames || [])])];
+  if (ixNames.length) {
+    const fromIx = categoryFromInstructions(ixNames);
+    if (fromIx) return fromIx;
+  }
   const hay = [
     ev.strings.join(' '), ev.urls.join(' '),
     ev.ixNames.join(' '), Object.values(ev.security).join(' '),
   ].join(' ');
+  return categoryFromBytecode(hay);
+}
 
-  let category = 'Utility';
-  for (const [re, c] of CATEGORY_RULES) {
-    if (re.test(hay)) { category = c; break; }
-  }
+function deriveSuggestion(ev) {
+  const { category, signals } = deriveCategory(ev);
 
   const website = ev.security.project_url
     || ev.urls.find((u) => !/github|gitlab|bitbucket/i.test(u))
     || null;
 
-  // On-chain IDL wins outright: the program declares its own name. Title-case it
-  // and mark High confidence regardless of other (weaker) signals.
-  if (ev.idl && ev.idl.name) {
-    return {
-      name: titleCase(ev.idl.name),
-      category,
-      confidence: 'High',
-      website,
-    };
-  }
-
   let name = null;
-  if (ev.security.name) {
+  // On-chain IDL wins outright for the NAME: the program declares its own.
+  if (ev.idl && ev.idl.name) {
+    name = titleCase(ev.idl.name);
+  } else if (ev.security.name) {
     name = ev.security.name;
   } else if (website) {
     name = domainName(website);
@@ -398,13 +474,24 @@ function deriveSuggestion(ev) {
     name = cap || 'Unknown';
   }
 
-  let signals = 0;
-  if (Object.keys(ev.security).length) signals += 2;
-  if (ev.ixNames.length) signals += 1;
-  if (website) signals += 1;
-  const confidence = signals >= 3 ? 'High' : signals >= 1 ? 'Medium' : 'Low';
+  // A declared IDL name is authoritative → High. Otherwise weigh the signals.
+  let confidence;
+  if (ev.idl && ev.idl.name) {
+    confidence = 'High';
+  } else {
+    let score = 0;
+    if (Object.keys(ev.security).length) score += 2;
+    if (ev.ixNames.length) score += 1;
+    if (website) score += 1;
+    confidence = score >= 3 ? 'High' : score >= 1 ? 'Medium' : 'Low';
+  }
 
-  return { name, category, confidence, website };
+  // Ambiguous/tied/absent category signals must never be one-tap approvable:
+  // force Low so the proposal routes into the ✏️ Needs-name guard, where the
+  // admin supplies the category by hand — even if the NAME itself is certain.
+  if (category === 'Unknown') confidence = 'Low';
+
+  return { name, category, categorySignals: signals, confidence, website };
 }
 
 // ── DB helpers ───────────────────────────────────────────────
@@ -477,6 +564,9 @@ function buildProposal(id, row, ev, sug) {
   if (ev.security.source_code) lines.push(`source: ${ev.security.source_code}`);
   for (const u of ev.urls.slice(0, 2)) lines.push(`url: ${u}`);
   if (ev.ixNames.length) lines.push(`instructions: ${ev.ixNames.slice(0, 6).join(', ')}`);
+  if (sug.categorySignals && sug.categorySignals.length) {
+    lines.push(`category signals: ${sug.categorySignals.join(', ')} → ${sug.category}`);
+  }
   for (const s of ev.strings.slice(0, 3)) lines.push(`str: ${s.slice(0, 80)}`);
   if (ev.locked === true) lines.push('program is LOCKED (immutable)');
   const evidence = lines.slice(0, 8).map((l) => ` · ${esc(l)}`).join('\n') || ' · (no readable evidence)';
@@ -546,7 +636,10 @@ async function approve(id, override, chatId, messageId) {
   const entry = state.programs[id];
   const sug = (entry && entry.suggested) || {};
   const name = (override && override.name) || sug.name || 'Unknown';
-  const category = (override && override.category) || sug.category || 'Utility';
+  // 'Unknown' is a routing sentinel from deriveSuggestion, never a real
+  // category — if the admin approves a name-only reply, degrade it to Utility.
+  const suggestedCategory = sug.category && sug.category !== 'Unknown' ? sug.category : null;
+  const category = (override && override.category) || suggestedCategory || 'Utility';
   const website = sug.website || undefined;
 
   const pending = readJson(PENDING_FILE, {});
