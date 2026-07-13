@@ -11,8 +11,8 @@ const COLS = [
   { key: "rank", label: "#", left: false },
   { key: "program_id", label: "Program", left: true },
   { key: "category", label: "Category", left: true },
-  { key: "signals", label: "Signals", left: true, nosort: true },
   { key: "upgrade_state", label: "Upgrade", left: true },
+  { key: "signals", label: "Signals", left: true, nosort: true },
   { key: "sonar_score", label: "Sonar Score", left: false },
   { key: "tx_count_24h", label: "TX 24h", left: false },
   { key: "tx_count_30d", label: "TX 30D", left: false },
@@ -359,9 +359,6 @@ export default function Home() {
                       {p.category || "Unknown"}
                     </span>
                   </td>
-                  <td className="left" data-l="Signals">
-                    <Signals p={p} />
-                  </td>
                   <td className="left" data-l="Upgrade">
                     {p.infrastructure ? (
                       <span className="up up-system">SYSTEM</span>
@@ -372,6 +369,9 @@ export default function Home() {
                     ) : (
                       <span className="dim">—</span>
                     )}
+                  </td>
+                  <td className="left" data-l="Signals">
+                    <Signals p={p} />
                   </td>
                   <td data-l="Sonar Score">
                     <span className="scorecell">
