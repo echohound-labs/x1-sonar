@@ -288,5 +288,25 @@
     "name": "Hound Tag",
     "category": "Utility",
     "website": "https://houndtag.xyz"
+  },
+  "8sRwfdxG5fGtJvHKhkYXC7QVxfWAta4KkxgciWY8erc7": {
+    "name": "PumX",
+    "category": "Token"
+  },
+  "BtEdQBkQQMs1u1wFaMutrzVu54FyQrVWaRf2qpbxWqi4": {
+    "name": "X1 Runner",
+    "category": "Game"
+  },
+  "834Z1EJhbQuhUJBD7apc3GKTHGYKN6Ya7Q9hghM7BgKU": {
+    "name": "X1 Agent v2",
+    "category": "Utility"
+  },
+  "2xXG9bbggrffG976okAbEHzw1BJgfA58d9zHTToke2Z6": {
+    "name": "Swap Router",
+    "category": "DEX"
+  },
+  "BVkCg15osvkMxVpKShDBUCMjZMGjU9wJm65Fy6kCXRSe": {
+    "name": "Blockspace",
+    "category": "Utility"
   }
 }
