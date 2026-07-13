@@ -340,7 +340,7 @@ footer a:hover { color: var(--ping); }
 .spark { display: inline-block; vertical-align: middle; opacity: 0.9; }
 
 /* ── Upgrade / governance badges (step 7) ───────── */
-.pill.toggle { margin-left: auto; }
+.toggles { margin-left: auto; display: flex; gap: 6px; }
 .up {
   display: inline-block;
   font-size: 10px;

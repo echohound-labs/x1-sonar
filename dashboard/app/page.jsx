@@ -50,6 +50,12 @@ const SIGNAL_DEFS = {
   upgradeable:  { glyph: "⬆", text: "UPGRADEABLE",  cls: "sig-dim" },
 };
 
+// Only substantive signals earn a column badge. `new` and `upgradeable` still
+// live in the API and count toward watchlist qualification, but they render on
+// most rows and duplicate existing UI (the UPGRADE column, the teal NEW pill),
+// so they are kept out of the column to let it stay quiet until it matters.
+const COLUMN_SIGNALS = new Set(["concentrated", "cliff", "failures", "anonymous", "closed"]);
+
 const nfmt = (v) => Number(v || 0).toLocaleString();
 
 function signalTip(sig, p) {
@@ -86,8 +92,8 @@ function onWatchlist(p) {
 }
 
 function Signals({ p }) {
-  const sigs = p.signals || [];
-  if (!sigs.length) return <span className="dim">—</span>;
+  const sigs = (p.signals || []).filter((s) => COLUMN_SIGNALS.has(s));
+  if (!sigs.length) return null; // stay blank unless something warrants a look
   return (
     <span className="sig-cluster">
       {sigs.map((s) => {
@@ -281,20 +287,22 @@ export default function Home() {
             {c}
           </button>
         ))}
-        <button
-          className={`pill toggle ${appsOnly ? "on" : ""}`}
-          onClick={() => setAppsOnly((v) => !v)}
-          title="Hide standard infrastructure programs (Token, ATA, Memo, Metaplex)"
-        >
-          {appsOnly ? "◉" : "○"} Apps only
-        </button>
-        <button
-          className={`pill toggle ${watchlist ? "on" : ""}`}
-          onClick={() => setWatchlist((v) => !v)}
-          title="Show only programs with 2+ objective on-chain signals (or closed accounts)"
-        >
-          {watchlist ? "◉" : "○"} ⚠ Watchlist
-        </button>
+        <div className="toggles">
+          <button
+            className={`pill toggle ${appsOnly ? "on" : ""}`}
+            onClick={() => setAppsOnly((v) => !v)}
+            title="Hide standard infrastructure programs (Token, ATA, Memo, Metaplex)"
+          >
+            {appsOnly ? "◉" : "○"} Apps only
+          </button>
+          <button
+            className={`pill toggle ${watchlist ? "on" : ""}`}
+            onClick={() => setWatchlist((v) => !v)}
+            title="Show only programs with 2+ objective on-chain signals (or closed accounts)"
+          >
+            {watchlist ? "◉" : "○"} ⚠ Watchlist
+          </button>
+        </div>
       </div>
 
       <div className="board">
