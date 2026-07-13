@@ -11,6 +11,7 @@ const COLS = [
   { key: "rank", label: "#", left: false },
   { key: "program_id", label: "Program", left: true },
   { key: "category", label: "Category", left: true },
+  { key: "signals", label: "Signals", left: true, nosort: true },
   { key: "upgrade_state", label: "Upgrade", left: true },
   { key: "sonar_score", label: "Sonar Score", left: false },
   { key: "tx_count_24h", label: "TX 24h", left: false },
@@ -33,6 +34,73 @@ function timeAgo(iso) {
 
 function short(id) {
   return `${id.slice(0, 6)}…${id.slice(-4)}`;
+}
+
+// ── Risk signals ──────────────────────────────────────────────
+// Objective on-chain facts, never verdicts. Each badge carries a tooltip
+// spelling out the fact behind it. Rendered in the order the API returns them
+// (most-notable first; `upgradeable` is lowest-weight and comes last).
+const SIGNAL_DEFS = {
+  closed:       { glyph: "†", text: "CLOSED",       cls: "sig-closed" },
+  failures:     { glyph: "⚠", text: "FAILING",      cls: "sig-warn" },
+  concentrated: { glyph: "⚠", text: "CONCENTRATED", cls: "sig-warn" },
+  cliff:        { glyph: "▼", text: "CLIFF",        cls: "sig-warn" },
+  anonymous:    { glyph: "?", text: "ANON",         cls: "sig-info" },
+  new:          { glyph: "",  text: "NEW",          cls: "sig-new" },
+  upgradeable:  { glyph: "⬆", text: "UPGRADEABLE",  cls: "sig-dim" },
+};
+
+const nfmt = (v) => Number(v || 0).toLocaleString();
+
+function signalTip(sig, p) {
+  switch (sig) {
+    case "closed":
+      return p.closed_at
+        ? `Program account no longer exists on-chain (since ${new Date(p.closed_at).toISOString().slice(0, 10)}).`
+        : "Program account no longer exists on-chain.";
+    case "failures":
+      return `${p.success_rate_24h == null ? "?" : Math.round(p.success_rate_24h * 100)}% success over ${nfmt(p.tx_count_24h)} txs in 24h.`;
+    case "concentrated":
+      return `${nfmt(p.unique_signers_30d)} signers / ${nfmt(p.tx_count_30d)} txs in 30d — activity concentrated among very few wallets.`;
+    case "cliff":
+      return `${nfmt(p.tx_all_time)} all-time txs but only ${nfmt(p.tx_count_30d)} in the last 30d.`;
+    case "anonymous":
+      return "No known name and no website in the registry.";
+    case "new":
+      return "First on-chain transaction within the last 30 days.";
+    case "upgradeable":
+      return "Program is upgradeable — its code can still change.";
+    default:
+      return sig;
+  }
+}
+
+// Signals that count toward the Watchlist. `upgradeable` is informational and
+// too common to be meaningful on its own, so it never counts — a program is on
+// the watchlist only with 2+ substantive signals, or if it is closed.
+function substantiveSignals(p) {
+  return (p.signals || []).filter((s) => s !== "upgradeable");
+}
+function onWatchlist(p) {
+  return !!p.closed_at || substantiveSignals(p).length >= 2;
+}
+
+function Signals({ p }) {
+  const sigs = p.signals || [];
+  if (!sigs.length) return <span className="dim">—</span>;
+  return (
+    <span className="sig-cluster">
+      {sigs.map((s) => {
+        const d = SIGNAL_DEFS[s] || { glyph: "", text: String(s).toUpperCase(), cls: "sig-info" };
+        return (
+          <span key={s} className={`sig ${d.cls}`} title={signalTip(s, p)}>
+            {d.glyph && <span className="sig-g">{d.glyph}</span>}
+            {d.text}
+          </span>
+        );
+      })}
+    </span>
+  );
 }
 
 function Sparkline({ data }) {
@@ -86,6 +154,7 @@ export default function Home() {
   const [copied, setCopied] = useState(null);
   const [cat, setCat] = useState("All");
   const [appsOnly, setAppsOnly] = useState(true);
+  const [watchlist, setWatchlist] = useState(false);
 
   async function load() {
     try {
@@ -118,7 +187,8 @@ export default function Home() {
     const arr = programs.filter(
       (p) =>
         (cat === "All" || (p.category || "Unknown") === cat) &&
-        (!appsOnly || !p.infrastructure)
+        (!appsOnly || !p.infrastructure) &&
+        (!watchlist || onWatchlist(p))
     );
     const { key, dir } = sort;
     arr.sort((a, b) => {
@@ -130,7 +200,7 @@ export default function Home() {
       return 0;
     });
     return arr;
-  }, [programs, sort, cat, appsOnly]);
+  }, [programs, sort, cat, appsOnly, watchlist]);
 
   const maxScore = useMemo(
     () => (programs || []).reduce((m, p) => Math.max(m, Number(p.sonar_score) || 0), 1),
@@ -138,7 +208,7 @@ export default function Home() {
   );
 
   function clickSort(key) {
-    if (key === "sparkline") return;
+    if (key === "sparkline" || key === "signals") return;
     if (key === "rank") key = "sonar_score";
     setSort((s) =>
       s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" }
@@ -218,6 +288,13 @@ export default function Home() {
         >
           {appsOnly ? "◉" : "○"} Apps only
         </button>
+        <button
+          className={`pill toggle ${watchlist ? "on" : ""}`}
+          onClick={() => setWatchlist((v) => !v)}
+          title="Show only programs with 2+ objective on-chain signals (or closed accounts)"
+        >
+          {watchlist ? "◉" : "○"} ⚠ Watchlist
+        </button>
       </div>
 
       <div className="board">
@@ -274,6 +351,9 @@ export default function Home() {
                       {p.category || "Unknown"}
                     </span>
                   </td>
+                  <td className="left" data-l="Signals">
+                    <Signals p={p} />
+                  </td>
                   <td className="left" data-l="Upgrade">
                     {p.infrastructure ? (
                       <span className="up up-system">SYSTEM</span>
@@ -319,6 +399,12 @@ export default function Home() {
           </table>
         )}
       </div>
+
+      {watchlist && (
+        <div className="watchnote">
+          Signals are objective on-chain facts, not verdicts. Do your own research.
+        </div>
+      )}
 
       <footer>
         <span>X1 Sonar · an Echo Hound Labs instrument</span>

@@ -61,22 +61,75 @@ async function readUpgradeState(programId) {
     : { state: 'locked', authority: null };
 }
 
+// Sweep every tracked program once per run to see whether its account still
+// exists on-chain. Batched via getMultipleAccounts (100/call) and paced — a
+// value of null for a slot means that account is gone. Sets closed_at when a
+// program disappears; clears it if the account comes back (redeploy at the same
+// address). A failed batch is skipped, never fatal — closed_at is left as-is.
+async function refreshClosedState() {
+  const { rows } = await pool.query(`SELECT program_id, closed_at FROM sonar.programs`);
+  const wasClosed = new Set(rows.filter((r) => r.closed_at).map((r) => r.program_id));
+  const ids = rows.map((r) => r.program_id);
+  let closed = 0, reopened = 0;
+
+  for (let i = 0; i < ids.length; i += 100) {
+    const chunk = ids.slice(i, i + 100);
+    let res;
+    try {
+      res = await rpc('getMultipleAccounts', [chunk, { encoding: 'base64' }]);
+    } catch (e) {
+      continue; // transient RPC error — leave this batch's closed_at untouched
+    }
+    const vals = (res && res.value) || [];
+    for (let j = 0; j < chunk.length; j++) {
+      const id = chunk[j];
+      const exists = vals[j] != null;
+      if (!exists && !wasClosed.has(id)) {
+        await pool.query(
+          `UPDATE sonar.programs SET closed_at = NOW() WHERE program_id = $1 AND closed_at IS NULL`, [id]);
+        closed++;
+      } else if (exists && wasClosed.has(id)) {
+        await pool.query(
+          `UPDATE sonar.programs SET closed_at = NULL WHERE program_id = $1`, [id]);
+        reopened++;
+      }
+    }
+    await sleep(120); // gentle pacing between batches — validator-safe
+  }
+  if (closed || reopened) {
+    console.log(`  · closed-state sweep: ${closed} newly closed, ${reopened} reopened`);
+  }
+}
+
 async function aggregate() {
   const client = await pool.connect();
   const t0 = Date.now();
   try {
-    // 0. Ensure the 30-day columns exist. Added manually by the DBA (the
+    // 0. Ensure the derived columns exist. Added manually by the DBA (the
     //    runtime role may lack ALTER), so try/catch like backfill.js — a
     //    privileged role self-heals, everyone else no-ops. Done before BEGIN
     //    so a privilege error can't abort the aggregation transaction.
+    //    `signals` (objective on-chain tags) + `closed_at` (account gone) are
+    //    also part of migrate-003.sql for DBA-managed deployments.
+    const ALTER_SQL = `ALTER TABLE sonar.programs
+  ADD COLUMN IF NOT EXISTS tx_count_30d BIGINT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS unique_signers_30d BIGINT DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS signals JSONB DEFAULT '[]'::jsonb,
+  ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ`;
     try {
-      await client.query(
-        `ALTER TABLE sonar.programs
-           ADD COLUMN IF NOT EXISTS tx_count_30d BIGINT DEFAULT 0,
-           ADD COLUMN IF NOT EXISTS unique_signers_30d BIGINT DEFAULT 0`
-      );
+      await client.query(ALTER_SQL);
     } catch (e) {
-      console.log(`  · skipping ALTER TABLE (${e.message}) — assuming columns managed by DBA`);
+      console.log(`  · runtime role can't ALTER TABLE (${e.message}). Run this as postgres:`);
+      console.log(`\n${ALTER_SQL};\n`);
+      console.log('  · (or apply migrate-003.sql) — continuing, assuming columns are DBA-managed.');
+    }
+
+    // 0b. Detect closed program accounts (RPC, outside the txn) BEFORE scoring
+    //     and signal computation read closed_at. Non-fatal on RPC trouble.
+    try {
+      await refreshClosedState();
+    } catch (e) {
+      console.error('[sonar-aggregate] closed-state sweep skipped:', e.message);
     }
 
     await client.query('BEGIN');
@@ -126,17 +179,20 @@ async function aggregate() {
     //  + 0.05 * age bonus (1.0 if >30 days old, else 0.5)
     //    Volume + signers now range over the trailing 30 days; recency keeps
     //    its 7-day liveness decay. NULLIF guards the all-zero cold-start case.
+    //    Closed programs are excluded from ranking: they don't feed the max
+    //    normalization and their own score is forced to 0 (history is kept).
     await client.query(`
       WITH mx AS (
         SELECT MAX(tx_count_30d) AS max_tx, MAX(unique_signers_30d) AS max_s
         FROM sonar.programs
+        WHERE closed_at IS NULL
       )
-      UPDATE sonar.programs p SET sonar_score = ROUND((
+      UPDATE sonar.programs p SET sonar_score = CASE WHEN p.closed_at IS NOT NULL THEN 0 ELSE ROUND((
         0.35 * COALESCE(LN(p.tx_count_30d + 1) / NULLIF(LN(mx.max_tx + 1), 0), 0)
       + 0.45 * COALESCE(LN(p.unique_signers_30d + 1) / NULLIF(LN(mx.max_s + 1), 0), 0)
       + 0.15 * GREATEST(0, 1 - EXTRACT(EPOCH FROM (NOW() - p.last_active_at)) / 604800.0)
       + 0.05 * CASE WHEN p.first_seen_at < NOW() - INTERVAL '30 days' THEN 1.0 ELSE 0.5 END
-      )::numeric * 1000, 2)
+      )::numeric * 1000, 2) END
       FROM mx
     `);
 
@@ -157,6 +213,36 @@ async function aggregate() {
     } catch (e) {
       console.error('[sonar-aggregate] registry skipped:', e.message);
     }
+
+    // 2c. Objective on-chain signals — recomputed every tick from columns we
+    //     already maintain. These are FACTS, not verdicts: the reader judges.
+    //     Runs AFTER the registry merge so `concentrated` sees final categories
+    //     and `anonymous` sees registry-supplied names/websites. Ordered most-
+    //     to-least notable; `upgradeable` is deliberately last (lowest weight).
+    //       new          → first tx within 30 days
+    //       concentrated → <=3 signers while >=50 txs in 30d, USER-FACING cats
+    //                      only (crank/keeper wallets are normal for the rest)
+    //       upgradeable  → program code can still change (informational)
+    //       anonymous    → no registry name and no website
+    //       failures     → <50% success over >=20 txs in 24h
+    //       cliff        → >=1000 all-time txs but <=5 in the last 30d
+    //       closed       → account no longer exists on-chain (see closed_at)
+    await client.query(`
+      UPDATE sonar.programs p SET signals = (
+        SELECT COALESCE(jsonb_agg(x.sig ORDER BY x.ord), '[]'::jsonb)
+        FROM (
+                    SELECT 'closed'::text AS sig, 0 AS ord WHERE p.closed_at IS NOT NULL
+          UNION ALL SELECT 'failures',       1 WHERE p.success_rate_24h < 0.5 AND p.tx_count_24h >= 20
+          UNION ALL SELECT 'concentrated',   2 WHERE p.unique_signers_30d <= 3 AND p.tx_count_30d >= 50
+                        AND p.infrastructure IS NOT TRUE
+                        AND p.category IN ('DEX','Token','NFT','Marketplace','Game','Staking')
+          UNION ALL SELECT 'cliff',          3 WHERE p.tx_all_time IS NOT NULL AND p.tx_all_time >= 1000 AND p.tx_count_30d <= 5
+          UNION ALL SELECT 'anonymous',      4 WHERE p.website IS NULL AND p.name IS NULL
+          UNION ALL SELECT 'new',            5 WHERE p.first_tx_at IS NOT NULL AND p.first_tx_at > NOW() - INTERVAL '30 days'
+          UNION ALL SELECT 'upgradeable',    6 WHERE p.upgrade_state = 'upgradeable'
+        ) x
+      )
+    `);
 
     // 3. Daily rollups — today + yesterday (UTC), replay-safe upsert
     await client.query(`

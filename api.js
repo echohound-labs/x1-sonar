@@ -36,7 +36,7 @@ const PROGRAM_FIELDS = `
   tx_all_time, first_tx_at,
   unique_signers_24h, unique_signers_7d, unique_signers_30d,
   success_rate_24h, sonar_score, category, name, description, website, verified,
-  upgrade_state, upgrade_authority, infrastructure
+  upgrade_state, upgrade_authority, infrastructure, signals, closed_at
 `;
 
 // GET /api/programs?sort=score&order=desc&limit=50&offset=0&category=DEX&new=true
@@ -143,7 +143,8 @@ fastify.get('/api/agents/bootstrap', async (req, reply) => {
   const { rows } = await pool.query(
     `SELECT program_id, name, category, website, infrastructure,
             first_tx_at, tx_all_time, tx_count_30d AS tx_30d,
-            unique_signers_30d, sonar_score, last_active_at
+            unique_signers_30d, sonar_score, last_active_at,
+            signals, closed_at
      FROM sonar.programs
      ORDER BY sonar_score DESC NULLS LAST`
   );
@@ -162,6 +163,9 @@ fastify.get('/api/agents/bootstrap', async (req, reply) => {
     p.unique_signers_30d = r.unique_signers_30d;
     p.sonar_score = r.sonar_score;
     p.last_active_at = r.last_active_at;
+    // Objective on-chain risk signals — a real differentiator for agents.
+    p.signals = r.signals || [];
+    if (r.closed_at) p.closed_at = r.closed_at;
     return p;
   });
 
