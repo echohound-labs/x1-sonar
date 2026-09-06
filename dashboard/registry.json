@@ -666,7 +666,9 @@
     "cluster": "PandaDrip"
   },
   "AQkMjGzuDVBDid5wCUYJZWby3i7qDaFyEAoCv44CdVCt": {
-    "deployer": "p3nANR1z6tEkJn79GhYscMbWunr7Fqjp9xngYTHAR2e"
+    "deployer": "p3nANR1z6tEkJn79GhYscMbWunr7Fqjp9xngYTHAR2e",
+    "name": "X1 Pepe",
+    "category": "Token"
   },
   "CLeNVGEqV6PTr7VgazsbWUNRSKDTHEdD3thE1BjHwPqy": {
     "deployer": "RqDMFxMKDN34yzB1TEL8dT55HBRL1B1peGyoeobyxfX"
