@@ -308,5 +308,45 @@
   "BVkCg15osvkMxVpKShDBUCMjZMGjU9wJm65Fy6kCXRSe": {
     "name": "Blockspace",
     "category": "Utility"
+  },
+  "8iq6zqaEVcfaym2u8t939PAN5jmfPVc6Z333RuxKTTZX": {
+    "name": "Memo Mint",
+    "category": "Token"
+  },
+  "1imtY8yhZrVe3fw4UW7bGKbKfQevq9uRHgZktCRyCoo": {
+    "name": "Order Book DEX",
+    "category": "DEX"
+  },
+  "oracVWFyxrr4FJfm48KT7yEmXcGxnTrMb7DwPjmhRQW": {
+    "name": "Price Oracle V2",
+    "category": "Oracle"
+  },
+  "Ads4aDZffD1y3CrJ3GkMMqkDpxedKyYe6Q52qvKiFTqx": {
+    "name": "PandaDrip",
+    "category": "Token"
+  },
+  "F2ekxHogDMpq1WJ1ZLMaVwD1UobV97b6uVByvxoWnZtL": {
+    "name": "Merger Market",
+    "category": "Marketplace"
+  },
+  "D466nLLWDVrV3hey6JqjihBJMAPK5iyFLzgj63EcCLwv": {
+    "name": "Merger Market Verifier",
+    "category": "Marketplace"
+  },
+  "8gTX3w2mAkKhGip9Mmvhb3gkcETugkfLEvmT4BNTh1By": {
+    "name": "Entropy Garden",
+    "category": "Game"
+  },
+  "12g4NFQmjL5PRZY8YQ9zJFZ1gWF3GSGBs868cekQqFsD": {
+    "name": "Treasury Hunt",
+    "category": "Game"
+  },
+  "SSCuJ3X6EBqp2JUwsnkr85vVjNjaEPDJvzBAsFrvJg6": {
+    "name": "Account Compression",
+    "category": "Utility"
+  },
+  "BeS5FfLWpsTdaYWcDyemMcJS6AcEM5sqbsmAycYCPT8u": {
+    "name": "Jacksroids AMM",
+    "category": "DEX"
   }
 }
