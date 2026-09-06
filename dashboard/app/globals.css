@@ -523,6 +523,19 @@ a.wordmark:hover .sonar { color: var(--text); }
   opacity: 0.85;
 }
 tbody tr:hover .cluster-tag { color: var(--text); border-color: var(--ping-dim); }
+.prov-chip {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--muted);
+  border: 1px dashed var(--line);
+  border-radius: 3px;
+  padding: 0 5px;
+  line-height: 15px;
+  white-space: nowrap;
+  opacity: 0.7;
+  font-style: italic;
+}
+tbody tr:hover .prov-chip { opacity: 1; }
 
 /* Section header per cluster when "Group by cluster" is on. */
 tbody tr.group-row { animation: none; }

@@ -107,6 +107,50 @@ function groupByDeployer(rows) {
   return out;
 }
 
+// ── Provenance ────────────────────────────────────────────────
+// Per-deployer summary across the full program list (not the filtered view):
+// the deployer's cluster label (most common among its programs) and its named
+// programs ordered by notability (Sonar score, then TX 30D).
+function buildProvenance(programs) {
+  const byDeployer = new Map();
+  for (const p of programs) {
+    const d = deployerOf(p);
+    if (!d) continue;
+    if (!byDeployer.has(d)) byDeployer.set(d, { clusters: new Map(), named: [], count: 0 });
+    const info = byDeployer.get(d);
+    info.count++;
+    const c = clusterOf(p);
+    if (c) info.clusters.set(c, (info.clusters.get(c) || 0) + 1);
+    if (p.name) info.named.push(p);
+  }
+  for (const info of byDeployer.values()) {
+    const top = [...info.clusters.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+    info.cluster = top ? top[0] : null;
+    info.named.sort(
+      (a, b) =>
+        (Number(b.sonar_score) || 0) - (Number(a.sonar_score) || 0) ||
+        (Number(b.tx_count_30d) || 0) - (Number(a.tx_count_30d) || 0)
+    );
+  }
+  return byDeployer;
+}
+
+// Chip text for a program, or null when it would add nothing: the deployer
+// has a cluster label the program's own pill doesn't already show, or the
+// deployer built another named program (the most notable sibling is cited).
+function provenanceOf(p, prov) {
+  const d = deployerOf(p);
+  const info = d && prov.get(d);
+  if (!info || info.count < 2) return null;
+  if (info.cluster) {
+    if (clusterOf(p) === info.cluster) return null;
+    return { text: `by ${info.cluster}`, deployer: d };
+  }
+  const sib = info.named.find((q) => q.program_id !== p.program_id);
+  if (!sib) return null;
+  return { text: `same deployer as ${sib.name}`, deployer: d };
+}
+
 // ── Risk signals ──────────────────────────────────────────────
 // Objective on-chain facts, never verdicts. Each badge carries a tooltip
 // spelling out the fact behind it. Rendered in the order the API returns them
@@ -282,6 +326,8 @@ export default function Home() {
 
   const groups = useMemo(() => (byDeployer && rows ? groupByDeployer(rows) : null), [rows, byDeployer]);
 
+  const prov = useMemo(() => buildProvenance(programs || []), [programs]);
+
   const maxScore = useMemo(
     () => (programs || []).reduce((m, p) => Math.max(m, Number(p.sonar_score) || 0), 1),
     [programs]
@@ -326,6 +372,14 @@ export default function Home() {
                 {clusterOf(p)}
               </span>
             )}
+            {(() => {
+              const pv = provenanceOf(p, prov);
+              return pv ? (
+                <span className="prov-chip" title={`Deployer ${pv.deployer}`}>
+                  {pv.text}
+                </span>
+              ) : null;
+            })()}
             {p.is_new && <span className="badge-new">NEW</span>}
           </span>
         </td>
