@@ -9,7 +9,9 @@
     "name": "Token-2022",
     "category": "Token",
     "infrastructure": true,
-    "website": "https://spl.solana.com/token-2022"
+    "website": "https://spl.solana.com/token-2022",
+    "deployer": "2sXr5THr5ZAwSfuJAc1KogPKZ2uKkhfNUAtEvNw5Q6Z7",
+    "cluster": "X1 Core Infra"
   },
   "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL": {
     "name": "Associated Token Account",
@@ -24,26 +26,33 @@
   "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s": {
     "name": "Metaplex Token Metadata",
     "category": "NFT",
-    "infrastructure": true
+    "infrastructure": true,
+    "deployer": "X1TMEC99KMa4MGEKfcrSJ6HZTiwvPVyrwQczZjuCoLV"
   },
   "BxUNg2yo5371BQMZPkfcxdCptFRDHkhvEXNM1QNPBRYU": {
     "name": "Geiger Entropy Oracle",
     "category": "Oracle",
-    "website": "https://geiger-dashboard.vercel.app"
+    "website": "https://geiger-dashboard.vercel.app",
+    "deployer": "FB4jp1T1YB5ttaeCEvNisqPmVpqfQyet4WxN6HsQdqxh",
+    "cluster": "Entropy Engine"
   },
   "9yCbdExJXtxexpdEXAcmgGqTnPN4apJbhjZscS8ntk4j": {
     "name": "X1 Forge",
     "category": "Marketplace",
-    "website": "https://x1forge.xyz"
+    "website": "https://x1forge.xyz",
+    "deployer": "3ioZuYEmgAdviubCiyMAHQCjFRcUod4RPfm7XEUcJWab"
   },
   "5QUVVnm1duiRazqa69KW9ZQhCCZcg5GBUKkUn5avA8Gb": {
     "name": "RISE Phoenix",
     "category": "NFT",
-    "website": "https://rise-phoenix-nft.vercel.app"
+    "website": "https://rise-phoenix-nft.vercel.app",
+    "deployer": "BAMEPccJucUMiVnsPJ2V9VzH5m3Q1TD9QDZJhrof4Nxy"
   },
   "GQPGh1M6xwwWLdGCmWum2BhPi6gkJaoNFXyyuXpgN59v": {
     "name": "X1City Genesis NFT",
-    "category": "NFT"
+    "category": "NFT",
+    "deployer": "8Js4i7dd7V9dxBws89K7ZzphEAJvdwmbowhW9ysUP7wk",
+    "cluster": "X1City"
   },
   "9mPmjK8NxJadYDiHiYAQH4WFCZ8kr7ZV8ria63ZkMtv2": {
     "name": "Oracle V2",
@@ -59,31 +68,40 @@
   },
   "staZUFFiH37ug855u25QL3Hm41GgqFK7MGpSHk1JuLi": {
     "name": "DGN Staking",
-    "category": "Staking"
+    "category": "Staking",
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
   },
   "XPoo1Fx6KNgeAzFcq2dPTo95bWGUSj5KdPVqYj9CZux": {
     "name": "Validator Stake Pool",
     "category": "Staking",
     "infrastructure": true,
-    "website": "https://spl.solana.com/stake-pool"
+    "website": "https://spl.solana.com/stake-pool",
+    "deployer": "Ha194AW38mWCMTGEt3kUQrrvz7eXKpsNRFQx6WrhMQNw"
   },
   "degenDXVPhS7vgu3hcdzGA7T6dfCe6qTYyVM7npP3pc": {
     "name": "Degen Launchpad",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "Ab7qsY8CNunATxPNk9uVaSgK9WF5uRPDucEYx5YiViLg"
   },
   "6kpeW1PX4E5cnch3qqzAw7pN1pDozXr1Z1K1bePzSNxq": {
     "name": "XDEX TWAP",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "SKc6b6zAv2kkB9EtitjppbzPVR48bCMfRtE5B8KDuF1",
+    "cluster": "XDEX"
   },
   "8QGfTSEwKvzr8NKLHw2xEigz18KDfdkiFJeM3ALnvbVH": {
     "name": "THEO Commitment Pools",
     "category": "Staking",
-    "website": "https://theo-pools.vercel.app"
+    "website": "https://theo-pools.vercel.app",
+    "deployer": "FB4jp1T1YB5ttaeCEvNisqPmVpqfQyet4WxN6HsQdqxh",
+    "cluster": "Entropy Engine"
   },
   "6r9HZKQRhDfNnZM4m6TgkcK82Bt6EA1q2Ck9VNWoTnGm": {
     "name": "Capy Warriors",
     "category": "NFT",
-    "website": "https://capy-nft-mint.vercel.app"
+    "website": "https://capy-nft-mint.vercel.app",
+    "deployer": "2EMbtMasbwBW4MA3pwqNtQguDJLh5k3GuQ3h4nubtktX"
   },
   "Stake11111111111111111111111111111111111111": {
     "name": "Native Stake Program",
@@ -93,7 +111,9 @@
   "SQDS4ep65T869zMMBKyuUq6aD6EgTu8psMjkvj52pCf": {
     "name": "Squads Protocol",
     "category": "Utility",
-    "website": "https://squads.so"
+    "website": "https://squads.so",
+    "deployer": "2sXr5THr5ZAwSfuJAc1KogPKZ2uKkhfNUAtEvNw5Q6Z7",
+    "cluster": "X1 Core Infra"
   },
   "BPFLoaderUpgradeab1e11111111111111111111111": {
     "name": "BPF Upgradeable Loader",
@@ -113,27 +133,36 @@
   "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d": {
     "name": "Metaplex Core",
     "category": "NFT",
-    "infrastructure": true
+    "infrastructure": true,
+    "deployer": "X1CoGMN7cayVJzu1q71Qkeivcv745JvRtbd696nDuCf"
   },
   "7ZueT8o1YQ82NkXMkBLje99HCbfZZ89rYnvY5LbHRFYG": {
     "name": "Ripper Swap",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "EQyD35MKUXJHnUETZQazY53hCwkorTqNLwovhbLC8yDh"
   },
   "4QRS5vQUeYsPDDH7KAqoyWfXYF22S9ZDmWCJUKFre6Ga": {
     "name": "XDEX Router",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
   },
   "7aGaE2nGkjmwEWCg3YTyHt1qATQDdebVZbWVxPLrGkZ7": {
     "name": "X1 Agent Program",
-    "category": "Agent"
+    "category": "Agent",
+    "deployer": "2V3s3JEP2dN9pN2EdKXu5FKpvGPAJik8LukKzvCL1GuF",
+    "cluster": "X1 Agent"
   },
   "EHZfFVB38genhLo2VcWKmb5Cr3ESFxLJQ71FjtDdSWBc": {
     "name": "Jack Staking",
-    "category": "Staking"
+    "category": "Staking",
+    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa"
   },
   "uaDkkJGLLEY3kFMhhvrh5MZJ6fmwCmhNf8L7BZQJ9Aw": {
     "name": "MIND Staking",
-    "category": "Staking"
+    "category": "Staking",
+    "deployer": "Cjk6T9VU2N4eUXC3E5TzazJjwUeMrC25xdJyqf3F1s2z",
+    "cluster": "MIND"
   },
   "6K6md8GFmT8fncNbWqHSJrduYfG6HgnFCp34jdouGVSM": {
     "name": "XEN Mint",
@@ -141,7 +170,8 @@
   },
   "x1Dp8D2X1nkHXZbEUQrh58mrUUSwEynYoVdXG5tE268": {
     "name": "Delegation Manager",
-    "category": "Staking"
+    "category": "Staking",
+    "deployer": "45bQSp8Xgvavg5fj6PAyqxR2Gd8nUbCFLFcsapmrFcyU"
   },
   "Config1111111111111111111111111111111111111": {
     "name": "Config Program",
@@ -150,94 +180,128 @@
   },
   "8ksW5j9oudqk2s47QcPjj5s5p7aT5ebrAzVMUYuqXQgt": {
     "name": "OnChain Compress",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "A1TRS3i2g62Zf6K4vybsW4JLx8wifqSoThyTQqXNaLDK"
   },
   "Esz2N1mREFY3sVwqY4NeaEybUoeMC2SDxKWxLGRZTXoP": {
     "name": "HWR Staking",
-    "category": "Staking"
+    "category": "Staking",
+    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa"
   },
   "BU7aJiim4pagjbPRMV8kuzt4dNqR1MMRGwrEj9uHbQVQ": {
     "name": "Dual-Reward Token Farm",
-    "category": "Staking"
+    "category": "Staking",
+    "deployer": "2cMd6WzzcDBEnBQahZ7FYzjBWDhtfKQmmqx5ocatwF9Y"
   },
   "Fts9s3NgngC7AsgJzSoWhptiqWdAAveqCLUwfBTub7mj": {
     "name": "XH Token Minter",
-    "category": "Token"
+    "category": "Token",
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
   },
   "5Y11zMtLYLofb5vQRJsReKYqT8GbtZPo1TsB6oEhMfzq": {
     "name": "Kryptark Registry",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "Hu1eebNGusB2QgdP6qjnP9fTX2MsLEb6Mk1KDuqfoBSR",
+    "cluster": "Merger Market"
   },
   "J4QL6xJ1KBZ2A2xxyoVG7tKUBPgjr4wg1uat5yJFz3rj": {
     "name": "XDEX XP Rewards",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
   },
   "7ytRMwKykiJnbT3gdLXPCUZMzrTNZZbr7m2i7fwiyjbJ": {
     "name": "Vow Protocol",
-    "category": "Staking"
+    "category": "Staking",
+    "deployer": "BPmZB128HNvmzubP4rwJTTNLmk9ucK71Jtqt7MowKV8M"
   },
   "sEsYH97wqmfnkzHedjNcw3zyJdPvUmsa9AixhS4b4fN": {
     "name": "XDEX",
     "category": "DEX",
-    "website": "https://xdex.xyz"
+    "website": "https://xdex.xyz",
+    "deployer": "cveZ26DWAWDQb3jUubHmdEM3GxvYt6gqfxdxD2ASNNY"
   },
   "6JbPTuxVuoTgyQeXFb9MH8C8nUY8NBbLP1Lu4B13JfMD": {
     "name": "Warp Bridge",
     "category": "Bridge",
-    "website": "https://app.bridge.x1.xyz"
+    "website": "https://app.bridge.x1.xyz",
+    "deployer": "2sXr5THr5ZAwSfuJAc1KogPKZ2uKkhfNUAtEvNw5Q6Z7",
+    "cluster": "X1 Core Infra"
   },
   "CrZFvAMZBtqp8mrwBXgYq25bm9y7hjaV1sBPrPZUJmiF": {
     "name": "Primeminer",
     "category": "Token",
-    "website": "https://primeminer.xyz"
+    "website": "https://primeminer.xyz",
+    "deployer": "X1pmiV8w1Ry9u8rkk8eLRVtLPfBiXRBQ5jZkAvih6tQ"
   },
   "F3ydfNgdM89BK5hDh7amVmt8AAGQSYCX1afb3EWZKGh8": {
     "name": "XChat",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "FSfAqpXpzaYbDgqzwEFYJabYcwwV8Q8wGyRChpbQTv2k",
+    "cluster": "XChat"
   },
   "DywBwS9HUUhAu1TcDxq7GaThFZHY92ZN9VQmHwDaBdox": {
     "name": "Shielded X1",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "HcNfG2qThD5vGYShra3SvgCSvoQyEmTPPWoksfgi5wUM"
   },
   "6n133fKcRGGgWcv6RwoEB2SHng8RYoVQ14f1DNscgAM5": {
     "name": "X1 OTC Escrow",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "2sgQ7LzA7urZ4joMy4uU3Rcus82ZoLbHa54UvChJc9j3",
+    "cluster": "X1NS"
   },
   "89DwceNFhbh2WNd6MJAQ3U6qTpZ26WgW5d4PCUWwmwkp": {
     "name": "ZK Verifier",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "8WEFEydUYxUjJXoRMUMVAZRaqcq9fc2m7nx8ybRzpBrF",
+    "cluster": "Privacy (ZK/FHE)"
   },
   "Fexje6CprTCWq6fbfYymjPao3ehYRiT8w8NspP2nv3yM": {
     "name": "Groth16 Verifier",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "8WEFEydUYxUjJXoRMUMVAZRaqcq9fc2m7nx8ybRzpBrF",
+    "cluster": "Privacy (ZK/FHE)"
   },
   "HAWdiMtvTfiFhENgxPdWEgBQmoa3A5oN1KV9N3LSmxXz": {
     "name": "MIND Melt",
-    "category": "Token"
+    "category": "Token",
+    "deployer": "Cjk6T9VU2N4eUXC3E5TzazJjwUeMrC25xdJyqf3F1s2z",
+    "cluster": "MIND"
   },
   "7D1RrSLwfamYwxxComyHxj1uXiuzwrcJphy1436Xvud2": {
     "name": "AgentID",
-    "category": "Agent"
+    "category": "Agent",
+    "deployer": "8QXh51FB7qU9zo43VwVP9F6t2i1SwcfEwWAf6XBjggHX"
   },
   "E9QqBtLFqBnhoWyFQ69zUg4gjyiLhwKnEAtLHHRpRgKn": {
     "name": "Kryptark Treasury",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "Hu1eebNGusB2QgdP6qjnP9fTX2MsLEb6Mk1KDuqfoBSR",
+    "cluster": "Merger Market"
   },
   "2D3odmy1CLH5MWQ58j7aHfCHJgiBqmAaHZoLWxgpFjAz": {
     "name": "FHE Vault",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "8WEFEydUYxUjJXoRMUMVAZRaqcq9fc2m7nx8ybRzpBrF",
+    "cluster": "Privacy (ZK/FHE)"
   },
   "9vpDcmoVr8ymY69pEZLKP1KDbeA4C5Ah7ZT2jZQK6sGa": {
     "name": "FHE Vault v2",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "8WEFEydUYxUjJXoRMUMVAZRaqcq9fc2m7nx8ybRzpBrF",
+    "cluster": "Privacy (ZK/FHE)"
   },
   "CKZHwoUZTJEnGNK4piPxyysrhwLKnnrNoBmEHM9rLaD4": {
     "name": "Labwork Marketplace",
-    "category": "Marketplace"
+    "category": "Marketplace",
+    "deployer": "E2JtCatV4dE2pLWvvtgQusNMf3HCKHieKhsyUz4r88DR"
   },
   "BSKTJpgAGHRaSMLA88chYPKuSuD9qbesEcHYmUrBWU7R": {
     "name": "Entropy Engine Validator Pool",
-    "category": "Oracle"
+    "category": "Oracle",
+    "deployer": "EFZhMW1Y1NFQgaiWATYwpaJ2kaw7aPZbJYfdeZQhXR2F"
   },
   "FDyWtM9UBNfXNuc5oZJ1V86d3dz635WnqMfX8x5Uifbm": {
     "name": "Entropy Engine",
@@ -245,109 +309,148 @@
   },
   "oXpLqbxQmMNsa43t5DPBXj2KKCsujyw3K8HkezyyXoR": {
     "name": "Price Oracle",
-    "category": "Oracle"
+    "category": "Oracle",
+    "deployer": "LU4h3fz8H1gByppf73MKKkgzoaQMxLzi8Qtw5RHmgKq"
   },
   "2thzsm9z31MPEvDWHuuSGqAcjrr5ek4pS78EgPAT4Fch": {
     "name": "X1 Strontium",
-    "category": "Oracle"
+    "category": "Oracle",
+    "deployer": "EgFaM42nFeZYwDXzMZWNTmp5ojyL7UGP8xgdX1SBXYsb"
   },
   "FHqyYq2kQAGZp9mmXt8NxGGn9NTK17nGJ3DeZnfM2DLT": {
     "name": "X1 Marketplace",
-    "category": "Marketplace"
+    "category": "Marketplace",
+    "deployer": "2V3s3JEP2dN9pN2EdKXu5FKpvGPAJik8LukKzvCL1GuF",
+    "cluster": "X1 Agent"
   },
   "5rQBTqjPYU6tXp551oyJ6HfmAdSUTFz4vnR4Cp4wcwrZ": {
     "name": "XDEX Limit Orders",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
   },
   "Bw84GDpz8d1XY8wsUMgFDeQQLmyUtKKFTAQSerfipjsg": {
     "name": "Vero Staking",
-    "category": "Staking"
+    "category": "Staking",
+    "deployer": "AivknDqDUqnvyYVmDViiB2bEHKyUK5HcX91gWL2zgTZ4"
   },
   "nameQyUhZQQgnirGbbJRR9ECWSdq1W7mMaNUZZTBvtq": {
     "name": "X1 Name Service",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "2sgQ7LzA7urZ4joMy4uU3Rcus82ZoLbHa54UvChJc9j3",
+    "cluster": "X1NS"
   },
   "X1NS1M4Lh9zwpYe7Mi2RKyy7QWq7dRtqyr7KxsLyUn5": {
     "name": "X1NS Registrar",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "2sgQ7LzA7urZ4joMy4uU3Rcus82ZoLbHa54UvChJc9j3",
+    "cluster": "X1NS"
   },
   "Cabdspv7CCMKj9Qwx4JA9v1FTrSp1tm9UtMie9PsfFXp": {
     "name": "X1Cats Mint",
-    "category": "NFT"
+    "category": "NFT",
+    "deployer": "CT7zuNqVZG9SZW2sXTXrUUt731AzLx2wdUzaukYhakUx"
   },
   "4Ai4Ps8YsrLfshU9xvkf9pobiVhewELdbXEZA7zaZ8E3": {
     "name": "X1 Agents Radio",
     "category": "Agent",
-    "website": "https://x1radio.vercel.app"
+    "website": "https://x1radio.vercel.app",
+    "deployer": "6ywBe9yU9GqP4BXfyAGNYJsCR2fkTqGnid4eMfh1QMYB"
   },
   "AGAdJKoLhrGrdFwrZZDEWsoR1Tq8kMcXGRKxX2wa2jfm": {
     "name": "Launchpad",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "Cjk6T9VU2N4eUXC3E5TzazJjwUeMrC25xdJyqf3F1s2z",
+    "cluster": "MIND"
   },
   "3zGSABr62ToeG6mC8kKzTpc5Y96AyDyTGHUS2BD3q8ee": {
     "name": "Hound Tag",
     "category": "Agent",
-    "website": "https://houndtag.xyz"
+    "website": "https://houndtag.xyz",
+    "deployer": "4dkKNqHwVt83oiBWgDQyt3LDEeSg8K9Yj9MSvAuUakM8"
   },
   "8sRwfdxG5fGtJvHKhkYXC7QVxfWAta4KkxgciWY8erc7": {
     "name": "PumX",
-    "category": "Token"
+    "category": "Token",
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
   },
   "BtEdQBkQQMs1u1wFaMutrzVu54FyQrVWaRf2qpbxWqi4": {
     "name": "X1 Runner",
-    "category": "Game"
+    "category": "Game",
+    "deployer": "8QXh51FB7qU9zo43VwVP9F6t2i1SwcfEwWAf6XBjggHX"
   },
   "834Z1EJhbQuhUJBD7apc3GKTHGYKN6Ya7Q9hghM7BgKU": {
     "name": "X1 Agent v2",
-    "category": "Agent"
+    "category": "Agent",
+    "deployer": "DtZz8J1VHtVkAUBvKsh5oibb3wVeqn3B3EHR3unXnRkh",
+    "cluster": "X1 Agent"
   },
   "2xXG9bbggrffG976okAbEHzw1BJgfA58d9zHTToke2Z6": {
     "name": "Swap Router",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "Cjk6T9VU2N4eUXC3E5TzazJjwUeMrC25xdJyqf3F1s2z",
+    "cluster": "MIND"
   },
   "BVkCg15osvkMxVpKShDBUCMjZMGjU9wJm65Fy6kCXRSe": {
     "name": "Blockspace",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "76ggF9z4zs7Pm5ejg5wjw2EyPGKmDP82xdPS8pE2gb7W"
   },
   "8iq6zqaEVcfaym2u8t939PAN5jmfPVc6Z333RuxKTTZX": {
     "name": "Memo Mint",
-    "category": "Token"
+    "category": "Token",
+    "deployer": "FVvewrVHqg2TPWXkesc3CJ7xxWnPtAkzN9nCpvr6UCtQ"
   },
   "1imtY8yhZrVe3fw4UW7bGKbKfQevq9uRHgZktCRyCoo": {
     "name": "Order Book DEX",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
   },
   "oracVWFyxrr4FJfm48KT7yEmXcGxnTrMb7DwPjmhRQW": {
     "name": "Price Oracle V2",
-    "category": "Oracle"
+    "category": "Oracle",
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
   },
   "Ads4aDZffD1y3CrJ3GkMMqkDpxedKyYe6Q52qvKiFTqx": {
     "name": "PandaDrip",
-    "category": "Token"
+    "category": "Token",
+    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ"
   },
   "F2ekxHogDMpq1WJ1ZLMaVwD1UobV97b6uVByvxoWnZtL": {
     "name": "Merger Market",
-    "category": "Marketplace"
+    "category": "Marketplace",
+    "deployer": "Hu1eebNGusB2QgdP6qjnP9fTX2MsLEb6Mk1KDuqfoBSR",
+    "cluster": "Merger Market"
   },
   "D466nLLWDVrV3hey6JqjihBJMAPK5iyFLzgj63EcCLwv": {
     "name": "Merger Market Verifier",
-    "category": "Marketplace"
+    "category": "Marketplace",
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
   },
   "8gTX3w2mAkKhGip9Mmvhb3gkcETugkfLEvmT4BNTh1By": {
     "name": "Entropy Garden",
-    "category": "Game"
+    "category": "Game",
+    "deployer": "FL7joRzoH4y1NnXtD8U99kNX8AkfJPTWeFASFXqwVDoh"
   },
   "12g4NFQmjL5PRZY8YQ9zJFZ1gWF3GSGBs868cekQqFsD": {
     "name": "Treasury Hunt",
-    "category": "Game"
+    "category": "Game",
+    "deployer": "RqDMFxMKDN34yzB1TEL8dT55HBRL1B1peGyoeobyxfX"
   },
   "SSCuJ3X6EBqp2JUwsnkr85vVjNjaEPDJvzBAsFrvJg6": {
     "name": "Account Compression",
-    "category": "Utility"
+    "category": "Utility",
+    "deployer": "2sgQ7LzA7urZ4joMy4uU3Rcus82ZoLbHa54UvChJc9j3",
+    "cluster": "X1NS"
   },
   "BeS5FfLWpsTdaYWcDyemMcJS6AcEM5sqbsmAycYCPT8u": {
     "name": "Jacksroids AMM",
-    "category": "DEX"
+    "category": "DEX",
+    "deployer": "Ct1tT3RMSA845DwLFsJVs2jAENYNGVTQdJzk8dwehVjz"
   },
   "3w4dSzx7WxpAvzTwui7iX1TGP1GzFMttbKt6AbwtFqqM": {
     "name": "CapySlot",
@@ -356,5 +459,222 @@
   "5bbBHcvBiabQuZgeM6J5jmypyPri6uXWCXjk1CNUimj9": {
     "name": "Apex AMM",
     "category": "DEX"
+  },
+  "DdjRXzPs6UdtvhveAuWdciLryz63DiPPyLq7mdqPVjs5": {
+    "deployer": "2jchoLFVoxmJUcygc2cDfAqQb1yWUEjJihsw2ARbDRy3"
+  },
+  "7ag4XnrATk1etwj8m5uZWDGHipmj6m2YFabMyTdJ8Gz6": {
+    "deployer": "2sgQ7LzA7urZ4joMy4uU3Rcus82ZoLbHa54UvChJc9j3",
+    "cluster": "X1NS"
+  },
+  "nfTbQtRpscYq1SGCkadj44Ka13EEqGMbBoq7ZhSefUs": {
+    "deployer": "2sgQ7LzA7urZ4joMy4uU3Rcus82ZoLbHa54UvChJc9j3",
+    "cluster": "X1NS"
+  },
+  "NLGgS9oZ43ufHjS6SAm8oAmAnhFRSkREFuzESJjMd7t": {
+    "deployer": "2sgQ7LzA7urZ4joMy4uU3Rcus82ZoLbHa54UvChJc9j3",
+    "cluster": "X1NS"
+  },
+  "RECQbMcEjcFLj2nDLeHS387mEPqhgkBRoWkXLCpk18S": {
+    "deployer": "2sgQ7LzA7urZ4joMy4uU3Rcus82ZoLbHa54UvChJc9j3",
+    "cluster": "X1NS"
+  },
+  "52bbc2ZApmC7EVvXBvYwzCaAx49R6iB68Hq7oUMid1tj": {
+    "deployer": "2V3s3JEP2dN9pN2EdKXu5FKpvGPAJik8LukKzvCL1GuF",
+    "cluster": "X1 Agent"
+  },
+  "2BL8k3Tfd5G36NSVbNUxEjPWvNwtduKDBHvpWaYGHeU2": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "2CxXcutsAteM8aFrtLU4j45wyKBS6KZvzn4SKX9pGGU9": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "4uuHmhKTe2LNsLDpF2wKr6XLvfEMh85wHHG8yTbCxHoM": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "5gf8Duyu2MyfrtX2st3JPUCQUQAigehPswFcNdyVqU7w": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "AD9XHuozCmAP4ugndqnri8QPFETQMX7pK86nJ6Zr4DeA": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "AtFwgwNBBHLWjBn5QYcjMn6LFgMk3hGEM3ERAZGYwgsf": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "BTfPkLyPPgNw2Fy9o52cYWZeCBBGQXR7NmQbaEQYNbjY": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "BY72RyDdmHiwyVcSwqPK4zXD8NWyDAWXLBPTDuh2SuuN": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "CMM5sQY3wvZazL6Wafi4iypv94rXR5HLE16nDkqZmUM3": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "F3um3hgmFNkYyXowQb8U6FXuvu4gWWjDLpXmqsWpMahG": {
+    "deployer": "2zotLCHPhTazmMVaRg9y4bmRm8mbBHb5XuvbV4mcQRAS",
+    "cluster": "PumX"
+  },
+  "ESCP55bDLVDhyiNYbnrdGoNCt2H8tyJHaq8zX4Mskkn9": {
+    "deployer": "3DSt34W8NQv3NEaWoocqZtRZahR9Zzaf9u4wfWKmY626"
+  },
+  "xen8pjUWEnRbm1eML9CGtHvmmQfruXMKUybqGjn3chv": {
+    "deployer": "45bQSp8Xgvavg5fj6PAyqxR2Gd8nUbCFLFcsapmrFcyU"
+  },
+  "HpiCaEjRp6Jdm4B2e1kCNnBEm8gAzxcYWyv2Nan4ynW": {
+    "deployer": "4dkKNqHwVt83oiBWgDQyt3LDEeSg8K9Yj9MSvAuUakM8"
+  },
+  "CpTj1VnQkGZJ8zZKyYaNe6YttKG1MTFn5B25ZnpPuuRs": {
+    "deployer": "4P8aUJfVEVKKZCBYKF7buC7RtCfvdjvzmkzgZ3g1U7p3"
+  },
+  "dXNTnQN1hxhjAsqmbG9ay3DtWbwfCtKs5FTv39mPaVj": {
+    "deployer": "5j3sdjWCF96EtC8y3avrw3RiQPYTeohyKjaHWVnSX1N8"
+  },
+  "DathyGCzwULv6XtHb12FCEoJUXpjXgfhmFvBoHHZhZxJ": {
+    "deployer": "6ECSj1h9QpgzBCpzjZPLJgwj66HS16BNmjckSWnZd952"
+  },
+  "Fr131uqEncXqpBNfqYDxPkKw5evfGdMQ3Y7Pq62Gto3": {
+    "deployer": "7dJK1sbR6Nysq2gCrKD5B7UL9YaMUZ9DmL3xqPkJxLBq"
+  },
+  "3geAsZiNaWDuTVtTbdWVQRitd55jY4UoWeeBmJFTJZmE": {
+    "deployer": "8fWyPAcmPv2yiKQRyw4Pjw4xJQMvapwZrVTj9PWiWzkz"
+  },
+  "HbTbfPAnY2bT3zyo7x8Nw9mG4DMBDPLkpWgKzLGKB8qU": {
+    "deployer": "8fWyPAcmPv2yiKQRyw4Pjw4xJQMvapwZrVTj9PWiWzkz"
+  },
+  "12Hy42BxNpgJkhC7XTdJ9sVxh8EacaR7upXhG4vgkcYK": {
+    "deployer": "8Js4i7dd7V9dxBws89K7ZzphEAJvdwmbowhW9ysUP7wk",
+    "cluster": "X1City"
+  },
+  "5xke3nmnBXtw6gqjWuK766AQQDaPYWZPvHqtTArKgFQg": {
+    "deployer": "8Js4i7dd7V9dxBws89K7ZzphEAJvdwmbowhW9ysUP7wk",
+    "cluster": "X1City"
+  },
+  "28K3Ar73kUufK8PdYiUcfu7qdbV2BJQMgfDgqzYg7QKB": {
+    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa"
+  },
+  "DppE8MMddNpBKRNT579uNnZ6agxDvSADFrxnz4iMVn8S": {
+    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa"
+  },
+  "8kmoPKtLAjjzQRN5i4emUsmWeu3LM5yPWFrsqZVyekhk": {
+    "deployer": "9oa7NAscCZ1kCQFZJng9gfwvDzrEvyWgx4F244PHmHPH"
+  },
+  "BXBZtvFfCtCapQgqFTxGQ9hgJTQZUoHFzBXD2V3ys5C5": {
+    "deployer": "9oa7NAscCZ1kCQFZJng9gfwvDzrEvyWgx4F244PHmHPH"
+  },
+  "AVfDQbDAyPWiE3F4yseGdKNmR4oFvzZk8Eyp3o5Wmnoy": {
+    "deployer": "A5ST5ir7Pvj83XML1bct57yRpgZQQRKj9c3mGUanXW5Q"
+  },
+  "2sJsvYN1acCLoctnrc6uvQDpBMomLs5EZVvCw9DisXYV": {
+    "deployer": "AM3S7mryu26SkFQArLuPGzuCVTc34e3ff3qZLfoccmBJ"
+  },
+  "26DoQvn9kae5gVjEveidPQJyezNFukFBzNxZJqsN8pho": {
+    "deployer": "AnNTiDUNJsC5AejetFM8XiZHnWapaQzXKKmVFHeDohf9"
+  },
+  "A9B1Vwz7SUyMNXMY7WkA5LKQnnoRD7h6o3ksuJxrZajH": {
+    "deployer": "Br1ZZ3KSVGwQcTrix2LyZsL84KxVCw5vCXHoTfTPzPsq"
+  },
+  "8k7XfaaHMyDGhbQc6PAoMKgJ2g8xrrTNxNeriqdEoX4T": {
+    "deployer": "BRBgaxdmMsgfWNj8BtutcF7CVcrhF2u2xnw2j58aLjtF",
+    "cluster": "Bounty"
+  },
+  "FsZqFx3X36fRWzq7aYagrBdFVTTcebBbUu1B2aH8cfna": {
+    "deployer": "BRBgaxdmMsgfWNj8BtutcF7CVcrhF2u2xnw2j58aLjtF",
+    "cluster": "Bounty"
+  },
+  "kQBvQTyAGEQSu18XQ54Bd3C5VqgovWXBtKzLK3RDCgA": {
+    "deployer": "BRBgaxdmMsgfWNj8BtutcF7CVcrhF2u2xnw2j58aLjtF",
+    "cluster": "Bounty"
+  },
+  "BC4y2dVdicttQCFSrBA9DjGxuHQrn3dikzds7twaRXu1": {
+    "deployer": "Bt6Vftnm5fo4teksHYhcDhcQNZWnB568J89vUqL1Rqbx"
+  },
+  "Ci1qDtdoSh8mCtJTVoX1tArbnLydQUZYu9RiqukRFJpg": {
+    "deployer": "CCcJuC3B7EwAq47VCPfgbvHvjf2xkuCj6wAKxNZ7vcY2"
+  },
+  "DNSefSAJ41Fm3ijmEug8tkDYJrHDwYGVtFtn8wwvbgJM": {
+    "deployer": "CCcJuC3B7EwAq47VCPfgbvHvjf2xkuCj6wAKxNZ7vcY2"
+  },
+  "GPB6HWneY8mPm9frsLyiQoNPdYrJJfqAaHEDEuANQ15R": {
+    "deployer": "CPVaU7H9BnePG1N5CajjK79sSwQgsdknfVvBJcJuXuwB"
+  },
+  "stskNxdsPZ9ZgPYrfYaxZGT8325naiVKGfyM53oKTr2": {
+    "deployer": "DtZz8J1VHtVkAUBvKsh5oibb3wVeqn3B3EHR3unXnRkh",
+    "cluster": "X1 Agent"
+  },
+  "1imtSkNuCjmCTP5oHntHmvYYG6p23VXxviSxqfj8seU": {
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
+  },
+  "2hfDu8hYgAdWmeN86s75XA6LJWVPtAqLojmwsRS53riX": {
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
+  },
+  "4TiJMEy1Z3EdpU4kteGc94JNntquZrZGp5jbYjxo17qZ": {
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
+  },
+  "DxbX4SLVHWo7bdnCm1secEFeTdgpaB6K7rc4wha5RHAp": {
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
+  },
+  "EmavsbfGk6tFQi7pz6BBSdwXFTfvjHu6DmmZ7VwbkHPA": {
+    "deployer": "DwhWUT38Dwth5e1NYAJ2SSacYSaLEvct3kMndM7VSbcS",
+    "cluster": "XDEX"
+  },
+  "3B6oAfmL7aGVAbBdu7zW3jqEVWK6o1nwFiufuSuFV6tN": {
+    "deployer": "E2JtCatV4dE2pLWvvtgQusNMf3HCKHieKhsyUz4r88DR"
+  },
+  "6qszNw6F3XUAGG4vpuVunTHcBJn7w1F5KUesFCjEvZrP": {
+    "deployer": "EAj1z4q6RN17BswMK38fADDEJQ5JTqy2WoTdky3drX6X"
+  },
+  "DdyU28aFeSqUgiD3bLdck7Gzv7AvqpdgT9Yw1doiwWH8": {
+    "deployer": "FSfAqpXpzaYbDgqzwEFYJabYcwwV8Q8wGyRChpbQTv2k",
+    "cluster": "XChat"
+  },
+  "2sb3gz5Cmr2g1ia5si2rmCZqPACxgaZXEmiS5k6Htcvh": {
+    "deployer": "FVvewrVHqg2TPWXkesc3CJ7xxWnPtAkzN9nCpvr6UCtQ"
+  },
+  "BUSs9eWd8ULocq54r4d3ZwkyPQmjHdYtPqYyry6kAwvN": {
+    "deployer": "j1TUP3sSnS8GFzWovD4G4mF7GX2Tky5tyQgnREwvswj"
+  },
+  "7ehLWcWT78DwxRDNsm1DZNw6HcFbZz9A4UBXY7Dc4Kik": {
+    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ"
+  },
+  "EDbb88hG7UB8FvxcPqevjEA8yxQYGzjELLfBEDnVjNFd": {
+    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ"
+  },
+  "EvS8TzFQrhWUx6q6M33wPNY58yCwYjBYb5x4UGEXwQ28": {
+    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ"
+  },
+  "AQkMjGzuDVBDid5wCUYJZWby3i7qDaFyEAoCv44CdVCt": {
+    "deployer": "p3nANR1z6tEkJn79GhYscMbWunr7Fqjp9xngYTHAR2e"
+  },
+  "CLeNVGEqV6PTr7VgazsbWUNRSKDTHEdD3thE1BjHwPqy": {
+    "deployer": "RqDMFxMKDN34yzB1TEL8dT55HBRL1B1peGyoeobyxfX"
+  },
+  "6AkciD1H4Fw6XbcBXHrHYJr5oLbymWm121gREz9cqDKW": {
+    "deployer": "SKc6b6zAv2kkB9EtitjppbzPVR48bCMfRtE5B8KDuF1",
+    "cluster": "XDEX"
+  },
+  "TtTVGrYb8vHFNv7h4qLpVQPnhJTFvfFvgUFT6cWuLsX": {
+    "deployer": "W17qaNLL8TUX8moVYC8Ef6FcLLgALXP1gcqAsGULudo"
+  },
+  "3vRF8F2bvTzxGgooW6Am9j1qbpnZQ3SyE8z4bTNFE5Ax": {
+    "deployer": "ZBr8uuhEqeo5sMTcKPj36dyTq7cjMgGu6epgGd3GGtJ"
+  },
+  "4RAa5RWXS3iYpfMEgMAKcHzGJeG2ErXLgTYqAFRJ5Kta": {
+    "deployer": "ZBr8uuhEqeo5sMTcKPj36dyTq7cjMgGu6epgGd3GGtJ"
+  },
+  "7QH4fKTGdmUeHY3Fb9kmcA5u1buFDNmp82s6QXDvjbWd": {
+    "deployer": "ZBr8uuhEqeo5sMTcKPj36dyTq7cjMgGu6epgGd3GGtJ"
   }
 }
