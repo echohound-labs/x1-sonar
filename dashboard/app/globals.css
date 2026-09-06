@@ -525,17 +525,30 @@ a.wordmark:hover .sonar { color: var(--text); }
 tbody tr:hover .cluster-tag { color: var(--text); border-color: var(--ping-dim); }
 .prov-chip {
   display: inline-block;
+  font-family: var(--font-mono);
   font-size: 10px;
   color: var(--muted);
+  background: none;
   border: 1px dashed var(--line);
   border-radius: 3px;
   padding: 0 5px;
   line-height: 15px;
   white-space: nowrap;
-  opacity: 0.7;
-  font-style: italic;
+  opacity: 0.75;
+  cursor: pointer;
 }
-tbody tr:hover .prov-chip { opacity: 1; }
+.prov-chip:hover, .prov-chip.on, tbody tr:hover .prov-chip { opacity: 1; color: var(--text); border-color: var(--ping-dim); }
+.prov-chip.on { border-style: solid; }
+tbody tr.prov-row { animation: none; }
+tbody tr.prov-row td { background: var(--surface-2); padding: 8px 14px 10px 44px; white-space: normal; }
+.prov-head { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.prov-head a { color: var(--text); font-family: var(--font-mono); }
+.prov-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.prov-list li { font-size: 12px; white-space: nowrap; }
+.prov-list li a { color: var(--text); }
+.prov-list li a:hover { color: var(--ping); }
+.prov-list li.self a { color: var(--ping); }
+.prov-unnamed, .prov-self { margin-left: 5px; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
 
 /* Section header per cluster when "Group by cluster" is on. */
 tbody tr.group-row { animation: none; }
@@ -563,4 +576,6 @@ tbody tr.group-row:hover td { background: var(--surface-2); }
   tbody tr.group-row { background: var(--surface-2); padding: 6px 12px; margin-bottom: 6px; }
   tbody tr.group-row td { border: none; padding: 0; white-space: normal; }
   tbody tr.group-row td::before { content: none; }
+  tbody tr.prov-row td { padding: 8px 12px; border: none; }
+  tbody tr.prov-row td::before { content: none; }
 }

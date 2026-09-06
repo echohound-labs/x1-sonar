@@ -57,6 +57,7 @@ function registryMeta() {
       if (programId.startsWith('_')) continue;
       const e = normalizeRegistryEntry(raw);
       meta.set(programId, {
+        name: typeof e.name === 'string' && e.name ? e.name : null,
         cluster: typeof e.cluster === 'string' && e.cluster ? e.cluster : null,
         deployer: typeof e.deployer === 'string' && e.deployer ? e.deployer : null,
       });
@@ -72,6 +73,54 @@ function registryMeta() {
 function withRegistryMeta(row) {
   const m = registryMeta().get(row.program_id);
   return { ...row, cluster: m?.cluster ?? null, deployer: m?.deployer ?? null };
+}
+
+// ── Deployer portfolio ────────────────────────────────────────────────────
+// Every registry program deployed by the same wallet, including the program
+// itself, enriched with live name/score/activity from sonar.programs when the
+// program is indexed. Purely factual: a shared deployer wallet does not imply
+// a shared project or team. No exclusions — core/infra wallets included.
+async function deployerPortfolio(deployer) {
+  if (!deployer) return [];
+  const ids = [];
+  const regName = new Map();
+  for (const [id, m] of registryMeta()) {
+    if (m.deployer === deployer) {
+      ids.push(id);
+      regName.set(id, m.name);
+    }
+  }
+  if (!ids.length) return [];
+  const live = new Map();
+  try {
+    const { rows } = await pool.query(
+      `SELECT program_id, name, category, sonar_score, tx_count_30d, last_active_at
+       FROM sonar.programs WHERE program_id = ANY($1)`,
+      [ids]
+    );
+    for (const r of rows) live.set(r.program_id, r);
+  } catch (e) {
+    fastify.log.warn(`deployer portfolio enrichment failed: ${e.message}`);
+  }
+  const out = ids.map((id) => {
+    const r = live.get(id);
+    return {
+      program_id: id,
+      name: r?.name ?? regName.get(id) ?? null,
+      category: r?.category ?? null,
+      sonar_score: r?.sonar_score ?? null,
+      tx_count_30d: r?.tx_count_30d ?? null,
+      last_active_at: r?.last_active_at ?? null,
+      indexed: Boolean(r),
+    };
+  });
+  out.sort(
+    (a, b) =>
+      (b.name ? 1 : 0) - (a.name ? 1 : 0) ||
+      (Number(b.sonar_score) || 0) - (Number(a.sonar_score) || 0) ||
+      (a.name || a.program_id).localeCompare(b.name || b.program_id)
+  );
+  return out;
 }
 
 const PROGRAM_FIELDS = `
@@ -146,7 +195,16 @@ fastify.get('/api/programs/:id', async (req, reply) => {
     `SELECT COUNT(*)::int + 1 AS rank FROM sonar.programs WHERE sonar_score > $1`,
     [rows[0].sonar_score]
   );
-  return { ...withRegistryMeta(rows[0]), rank: rank[0].rank };
+  const program = withRegistryMeta(rows[0]);
+  const deployer_programs = await deployerPortfolio(program.deployer);
+  return {
+    ...program,
+    rank: rank[0].rank,
+    // Full sibling list from the same deployer wallet (includes this program).
+    // Factual only: same deployer ≠ same project or team.
+    deployer_program_count: deployer_programs.length,
+    deployer_programs,
+  };
 });
 
 // GET /api/programs/:id/history?days=30 — daily sparkline data

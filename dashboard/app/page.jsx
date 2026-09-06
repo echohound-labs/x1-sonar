@@ -107,48 +107,45 @@ function groupByDeployer(rows) {
   return out;
 }
 
-// ── Provenance ────────────────────────────────────────────────
-// Per-deployer summary across the full program list (not the filtered view):
-// the deployer's cluster label (most common among its programs) and its named
-// programs ordered by notability (Sonar score, then TX 30D).
-function buildProvenance(programs) {
-  const byDeployer = new Map();
-  for (const p of programs) {
-    const d = deployerOf(p);
-    if (!d) continue;
-    if (!byDeployer.has(d)) byDeployer.set(d, { clusters: new Map(), named: [], count: 0 });
-    const info = byDeployer.get(d);
-    info.count++;
-    const c = clusterOf(p);
-    if (c) info.clusters.set(c, (info.clusters.get(c) || 0) + 1);
-    if (p.name) info.named.push(p);
+// ── Deployer portfolio ────────────────────────────────────────
+// Every program deployed by each deployer wallet, built from the API program
+// list merged with the bundled registry (so siblings outside the fetched
+// leaderboard page still count). Purely factual: one wallet can deploy
+// unrelated things, so this never implies a shared project or team. No
+// exclusions — core/infra wallets are listed like any other.
+function buildPortfolios(programs) {
+  const byId = new Map();
+  for (const [id, raw] of Object.entries(registry)) {
+    if (id.startsWith("_")) continue;
+    const m = regMeta(id);
+    byId.set(id, { program_id: id, name: m.name || null, deployer: m.deployer || null });
   }
-  for (const info of byDeployer.values()) {
-    const top = [...info.clusters.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
-    info.cluster = top ? top[0] : null;
-    info.named.sort(
+  for (const p of programs) {
+    const prev = byId.get(p.program_id) || {};
+    byId.set(p.program_id, {
+      ...prev,
+      program_id: p.program_id,
+      name: p.name || prev.name || null,
+      deployer: deployerOf(p) || prev.deployer || null,
+      sonar_score: Number(p.sonar_score) || 0,
+    });
+  }
+  const out = new Map();
+  for (const e of byId.values()) {
+    if (!e.deployer) continue;
+    if (!out.has(e.deployer)) out.set(e.deployer, []);
+    out.get(e.deployer).push(e);
+  }
+  for (const list of out.values()) {
+    // Named first, then by score, then by name/id — stable and readable.
+    list.sort(
       (a, b) =>
-        (Number(b.sonar_score) || 0) - (Number(a.sonar_score) || 0) ||
-        (Number(b.tx_count_30d) || 0) - (Number(a.tx_count_30d) || 0)
+        (b.name ? 1 : 0) - (a.name ? 1 : 0) ||
+        (b.sonar_score || 0) - (a.sonar_score || 0) ||
+        (a.name || a.program_id).localeCompare(b.name || b.program_id)
     );
   }
-  return byDeployer;
-}
-
-// Chip text for a program, or null when it would add nothing: the deployer
-// has a cluster label the program's own pill doesn't already show, or the
-// deployer built another named program (the most notable sibling is cited).
-function provenanceOf(p, prov) {
-  const d = deployerOf(p);
-  const info = d && prov.get(d);
-  if (!info || info.count < 2) return null;
-  if (info.cluster) {
-    if (clusterOf(p) === info.cluster) return null;
-    return { text: `by ${info.cluster}`, deployer: d };
-  }
-  const sib = info.named.find((q) => q.program_id !== p.program_id);
-  if (!sib) return null;
-  return { text: `same deployer as ${sib.name}`, deployer: d };
+  return out;
 }
 
 // ── Risk signals ──────────────────────────────────────────────
@@ -277,6 +274,7 @@ export default function Home() {
   const [appsOnly, setAppsOnly] = useState(true);
   const [watchlist, setWatchlist] = useState(false);
   const [byDeployer, setByDeployer] = useState(false);
+  const [openPortfolio, setOpenPortfolio] = useState(null); // program_id whose deployer list is expanded
 
   async function load() {
     try {
@@ -326,7 +324,7 @@ export default function Home() {
 
   const groups = useMemo(() => (byDeployer && rows ? groupByDeployer(rows) : null), [rows, byDeployer]);
 
-  const prov = useMemo(() => buildProvenance(programs || []), [programs]);
+  const portfolios = useMemo(() => buildPortfolios(programs || []), [programs]);
 
   const maxScore = useMemo(
     () => (programs || []).reduce((m, p) => Math.max(m, Number(p.sonar_score) || 0), 1),
@@ -348,6 +346,39 @@ export default function Home() {
   }
 
   function renderRow(p, i) {
+    const main = renderMainRow(p, i);
+    if (openPortfolio !== p.program_id) return main;
+    const d = deployerOf(p);
+    const list = (d && portfolios.get(d)) || [];
+    return [
+      main,
+      <tr key={`${p.program_id}:deployer`} className="prov-row">
+        <td colSpan={COLS.length} className="left">
+          <div className="prov-head">
+            Deployer{" "}
+            <a href={`${EXPLORER}/${d}`} target="_blank" rel="noopener noreferrer" title={d}>
+              {short(d)}
+            </a>{" "}
+            deployed {list.length} programs on X1, including this one. Same deployer wallet only —
+            this does not imply a shared project or team.
+          </div>
+          <ul className="prov-list">
+            {list.map((e) => (
+              <li key={e.program_id} className={e.program_id === p.program_id ? "self" : ""}>
+                <a href={`${EXPLORER}/${e.program_id}`} target="_blank" rel="noopener noreferrer" title={e.program_id}>
+                  {e.name || short(e.program_id)}
+                </a>
+                {!e.name && <span className="prov-unnamed">unnamed</span>}
+                {e.program_id === p.program_id && <span className="prov-self">this program</span>}
+              </li>
+            ))}
+          </ul>
+        </td>
+      </tr>,
+    ];
+  }
+
+  function renderMainRow(p, i) {
     return (
       <tr key={p.program_id} style={{ animationDelay: `${Math.min(i * 35, 700)}ms` }}>
         <td className="rank" data-l="Rank">{p.rank}</td>
@@ -373,12 +404,22 @@ export default function Home() {
               </span>
             )}
             {(() => {
-              const pv = provenanceOf(p, prov);
-              return pv ? (
-                <span className="prov-chip" title={`Deployer ${pv.deployer}`}>
-                  {pv.text}
-                </span>
-              ) : null;
+              const d = deployerOf(p);
+              const list = d ? portfolios.get(d) : null;
+              if (!list || list.length < 2) return null;
+              const open = openPortfolio === p.program_id;
+              const preview = list.map((e) => e.name || short(e.program_id)).join(", ");
+              return (
+                <button
+                  type="button"
+                  className={`prov-chip ${open ? "on" : ""}`}
+                  onClick={() => setOpenPortfolio(open ? null : p.program_id)}
+                  aria-expanded={open}
+                  title={`Deployer ${d} also deployed: ${preview}`}
+                >
+                  deployer: {list.length} programs {open ? "▴" : "▾"}
+                </button>
+              );
             })()}
             {p.is_new && <span className="badge-new">NEW</span>}
           </span>

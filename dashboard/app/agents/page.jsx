@@ -69,7 +69,14 @@ const PROGRAM_SAMPLE = `{
   "sonar_score": 944.6,
   "upgrade_state": "upgradeable",
   "infrastructure": false,
-  "rank": 1
+  "rank": 1,
+  "cluster": "XDEX",
+  "deployer": "cveZ26DWAWDQb3jUubHmdEM3GxvYt6gqfxdxD2ASNNY",
+  "deployer_program_count": 2,
+  "deployer_programs": [
+    { "program_id": "sEsYH97wqmfnkzHedjNcw3zyJdPvUmsa9AixhS4b4fN", "name": "XDEX", "category": "DEX", "sonar_score": 944.6, "tx_count_30d": 121840, "last_active_at": "2026-06-10T11:02:51.000Z", "indexed": true },
+    { "program_id": "…", "name": null, "category": null, "sonar_score": null, "tx_count_30d": null, "last_active_at": null, "indexed": false }
+  ]
 }`;
 
 const HISTORY_SAMPLE = `{
@@ -179,7 +186,7 @@ export default function Agents() {
 
         <Endpoint
           route="/api/programs/:id"
-          desc="Full detail for one program by base58 program id, including its current rank."
+          desc="Full detail for one program by base58 program id, including its current rank, its deployer wallet, and deployer_programs — every program that same wallet deployed (same deployer only; not a project or team claim)."
           curl={`curl -s ${API}/api/programs/sEsYH97wqmfnkzHedjNcw3zyJdPvUmsa9AixhS4b4fN`}
           sample={PROGRAM_SAMPLE}
         />
