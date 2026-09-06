@@ -33,8 +33,7 @@
     "name": "Geiger Entropy Oracle",
     "category": "Oracle",
     "website": "https://geiger-dashboard.vercel.app",
-    "deployer": "FB4jp1T1YB5ttaeCEvNisqPmVpqfQyet4WxN6HsQdqxh",
-    "cluster": "Entropy Engine"
+    "deployer": "FB4jp1T1YB5ttaeCEvNisqPmVpqfQyet4WxN6HsQdqxh"
   },
   "9yCbdExJXtxexpdEXAcmgGqTnPN4apJbhjZscS8ntk4j": {
     "name": "X1 Forge",
@@ -94,8 +93,7 @@
     "name": "THEO Commitment Pools",
     "category": "Staking",
     "website": "https://theo-pools.vercel.app",
-    "deployer": "FB4jp1T1YB5ttaeCEvNisqPmVpqfQyet4WxN6HsQdqxh",
-    "cluster": "Entropy Engine"
+    "deployer": "FB4jp1T1YB5ttaeCEvNisqPmVpqfQyet4WxN6HsQdqxh"
   },
   "6r9HZKQRhDfNnZM4m6TgkcK82Bt6EA1q2Ck9VNWoTnGm": {
     "name": "Capy Warriors",
