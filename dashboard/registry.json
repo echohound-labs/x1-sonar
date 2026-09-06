@@ -156,7 +156,8 @@
   "EHZfFVB38genhLo2VcWKmb5Cr3ESFxLJQ71FjtDdSWBc": {
     "name": "Jack Staking",
     "category": "Staking",
-    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa"
+    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa",
+    "cluster": "Jack Staking"
   },
   "uaDkkJGLLEY3kFMhhvrh5MZJ6fmwCmhNf8L7BZQJ9Aw": {
     "name": "MIND Staking",
@@ -186,7 +187,8 @@
   "Esz2N1mREFY3sVwqY4NeaEybUoeMC2SDxKWxLGRZTXoP": {
     "name": "HWR Staking",
     "category": "Staking",
-    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa"
+    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa",
+    "cluster": "Jack Staking"
   },
   "BU7aJiim4pagjbPRMV8kuzt4dNqR1MMRGwrEj9uHbQVQ": {
     "name": "Dual-Reward Token Farm",
@@ -273,7 +275,8 @@
   "7D1RrSLwfamYwxxComyHxj1uXiuzwrcJphy1436Xvud2": {
     "name": "AgentID",
     "category": "Agent",
-    "deployer": "8QXh51FB7qU9zo43VwVP9F6t2i1SwcfEwWAf6XBjggHX"
+    "deployer": "8QXh51FB7qU9zo43VwVP9F6t2i1SwcfEwWAf6XBjggHX",
+    "cluster": "X1 Runner"
   },
   "E9QqBtLFqBnhoWyFQ69zUg4gjyiLhwKnEAtLHHRpRgKn": {
     "name": "Kryptark Treasury",
@@ -378,7 +381,8 @@
   "BtEdQBkQQMs1u1wFaMutrzVu54FyQrVWaRf2qpbxWqi4": {
     "name": "X1 Runner",
     "category": "Game",
-    "deployer": "8QXh51FB7qU9zo43VwVP9F6t2i1SwcfEwWAf6XBjggHX"
+    "deployer": "8QXh51FB7qU9zo43VwVP9F6t2i1SwcfEwWAf6XBjggHX",
+    "cluster": "X1 Runner"
   },
   "834Z1EJhbQuhUJBD7apc3GKTHGYKN6Ya7Q9hghM7BgKU": {
     "name": "X1 Agent v2",
@@ -400,7 +404,8 @@
   "8iq6zqaEVcfaym2u8t939PAN5jmfPVc6Z333RuxKTTZX": {
     "name": "Memo Mint",
     "category": "Token",
-    "deployer": "FVvewrVHqg2TPWXkesc3CJ7xxWnPtAkzN9nCpvr6UCtQ"
+    "deployer": "FVvewrVHqg2TPWXkesc3CJ7xxWnPtAkzN9nCpvr6UCtQ",
+    "cluster": "Memo Mint"
   },
   "1imtY8yhZrVe3fw4UW7bGKbKfQevq9uRHgZktCRyCoo": {
     "name": "Order Book DEX",
@@ -417,7 +422,8 @@
   "Ads4aDZffD1y3CrJ3GkMMqkDpxedKyYe6Q52qvKiFTqx": {
     "name": "PandaDrip",
     "category": "Token",
-    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ"
+    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ",
+    "cluster": "PandaDrip"
   },
   "F2ekxHogDMpq1WJ1ZLMaVwD1UobV97b6uVByvxoWnZtL": {
     "name": "Merger Market",
@@ -559,10 +565,12 @@
     "cluster": "X1City"
   },
   "28K3Ar73kUufK8PdYiUcfu7qdbV2BJQMgfDgqzYg7QKB": {
-    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa"
+    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa",
+    "cluster": "Jack Staking"
   },
   "DppE8MMddNpBKRNT579uNnZ6agxDvSADFrxnz4iMVn8S": {
-    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa"
+    "deployer": "9APPkUbLrvf716zwWuYLh9xp9Qf67AuYtsqSP831ANZa",
+    "cluster": "Jack Staking"
   },
   "8kmoPKtLAjjzQRN5i4emUsmWeu3LM5yPWFrsqZVyekhk": {
     "deployer": "9oa7NAscCZ1kCQFZJng9gfwvDzrEvyWgx4F244PHmHPH"
@@ -641,19 +649,23 @@
     "cluster": "XChat"
   },
   "2sb3gz5Cmr2g1ia5si2rmCZqPACxgaZXEmiS5k6Htcvh": {
-    "deployer": "FVvewrVHqg2TPWXkesc3CJ7xxWnPtAkzN9nCpvr6UCtQ"
+    "deployer": "FVvewrVHqg2TPWXkesc3CJ7xxWnPtAkzN9nCpvr6UCtQ",
+    "cluster": "Memo Mint"
   },
   "BUSs9eWd8ULocq54r4d3ZwkyPQmjHdYtPqYyry6kAwvN": {
     "deployer": "j1TUP3sSnS8GFzWovD4G4mF7GX2Tky5tyQgnREwvswj"
   },
   "7ehLWcWT78DwxRDNsm1DZNw6HcFbZz9A4UBXY7Dc4Kik": {
-    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ"
+    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ",
+    "cluster": "PandaDrip"
   },
   "EDbb88hG7UB8FvxcPqevjEA8yxQYGzjELLfBEDnVjNFd": {
-    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ"
+    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ",
+    "cluster": "PandaDrip"
   },
   "EvS8TzFQrhWUx6q6M33wPNY58yCwYjBYb5x4UGEXwQ28": {
-    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ"
+    "deployer": "oKaj53cTHEXWwraNim86KQMxaHmTCHxUoCkG7kC7vrJ",
+    "cluster": "PandaDrip"
   },
   "AQkMjGzuDVBDid5wCUYJZWby3i7qDaFyEAoCv44CdVCt": {
     "deployer": "p3nANR1z6tEkJn79GhYscMbWunr7Fqjp9xngYTHAR2e"
