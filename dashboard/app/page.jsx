@@ -36,6 +36,44 @@ function short(id) {
   return `${id.slice(0, 6)}…${id.slice(-4)}`;
 }
 
+// registry.json is mixed-format: an entry is either an object
+// ({ name, category, website, cluster, deployer, ... }) or a bare string
+// (just the name). Normalize so callers can read fields either way.
+function regMeta(id) {
+  const v = registry[id];
+  if (typeof v === "string") return { name: v };
+  return v && typeof v === "object" ? v : {};
+}
+
+// Cluster = ecosystem the program belongs to (e.g. "XDEX", "PumX"). The API
+// stamps it from the registry; fall back to the bundled registry so the tag
+// still shows if the API build is older than the dashboard.
+function clusterOf(p) {
+  const c = p.cluster || regMeta(p.program_id).cluster;
+  return typeof c === "string" && c ? c : null;
+}
+
+const UNCLUSTERED = "Unclustered";
+
+// Group rows by cluster. Clusters are ordered by total activity (TX 30D, then
+// TX 24h as tiebreak); programs without a cluster land in a final
+// "Unclustered" section. Rows keep the table's current sort within a group.
+function groupByCluster(rows) {
+  const groups = new Map();
+  for (const p of rows) {
+    const key = clusterOf(p) || UNCLUSTERED;
+    if (!groups.has(key)) groups.set(key, { name: key, rows: [], tx30d: 0, tx24h: 0 });
+    const g = groups.get(key);
+    g.rows.push(p);
+    g.tx30d += Number(p.tx_count_30d) || 0;
+    g.tx24h += Number(p.tx_count_24h) || 0;
+  }
+  const out = [...groups.values()].filter((g) => g.name !== UNCLUSTERED);
+  out.sort((a, b) => b.tx30d - a.tx30d || b.tx24h - a.tx24h || a.name.localeCompare(b.name));
+  if (groups.has(UNCLUSTERED)) out.push(groups.get(UNCLUSTERED));
+  return out;
+}
+
 // ── Risk signals ──────────────────────────────────────────────
 // Objective on-chain facts, never verdicts. Each badge carries a tooltip
 // spelling out the fact behind it. Rendered in the order the API returns them
@@ -161,6 +199,7 @@ export default function Home() {
   const [cat, setCat] = useState("All");
   const [appsOnly, setAppsOnly] = useState(true);
   const [watchlist, setWatchlist] = useState(false);
+  const [byCluster, setByCluster] = useState(false);
 
   async function load() {
     try {
@@ -208,6 +247,8 @@ export default function Home() {
     return arr;
   }, [programs, sort, cat, appsOnly, watchlist]);
 
+  const groups = useMemo(() => (byCluster && rows ? groupByCluster(rows) : null), [rows, byCluster]);
+
   const maxScore = useMemo(
     () => (programs || []).reduce((m, p) => Math.max(m, Number(p.sonar_score) || 0), 1),
     [programs]
@@ -225,6 +266,85 @@ export default function Home() {
     navigator.clipboard?.writeText(id);
     setCopied(id);
     setTimeout(() => setCopied(null), 1200);
+  }
+
+  function renderRow(p, i) {
+    return (
+      <tr key={p.program_id} style={{ animationDelay: `${Math.min(i * 35, 700)}ms` }}>
+        <td className="rank" data-l="Rank">{p.rank}</td>
+        <td className="left" data-l="Program">
+          <span className="pid">
+            <a
+              href={`${EXPLORER}/${p.program_id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              title={p.program_id}
+            >
+              {p.name || short(p.program_id)}
+            </a>
+            <button className="copy" onClick={() => copyId(p.program_id)}>
+              {copied === p.program_id ? "ok" : "copy"}
+            </button>
+            {regMeta(p.program_id).website && (
+              <a className="site" href={regMeta(p.program_id).website} target="_blank" rel="noopener noreferrer">site ↗</a>
+            )}
+            {clusterOf(p) && (
+              <span className="cluster-tag" title={`Part of the ${clusterOf(p)} ecosystem`}>
+                {clusterOf(p)}
+              </span>
+            )}
+            {p.is_new && <span className="badge-new">NEW</span>}
+          </span>
+        </td>
+        <td className="left" data-l="Category">
+          <span className={`cat cat-${(p.category || "Unknown").toLowerCase()}`}>
+            {p.category || "Unknown"}
+          </span>
+        </td>
+        <td className="left" data-l="Upgrade">
+          {p.infrastructure ? (
+            <span className="up up-system">SYSTEM</span>
+          ) : p.upgrade_state === "locked" ? (
+            <span className="up up-locked">LOCKED</span>
+          ) : p.upgrade_state === "upgradeable" ? (
+            <span className="up up-open">UPGRADEABLE</span>
+          ) : (
+            <span className="dim">—</span>
+          )}
+        </td>
+        <td className="left" data-l="Signals">
+          <Signals p={p} />
+        </td>
+        <td data-l="Sonar Score">
+          <span className="scorecell">
+            <span className="scorebar">
+              <i style={{ width: `${(Number(p.sonar_score) / maxScore) * 100}%` }} />
+            </span>
+            <span className="score">{Number(p.sonar_score).toFixed(0)}</span>
+          </span>
+        </td>
+        <td data-l="TX 24h">{Number(p.tx_count_24h).toLocaleString()}</td>
+        <td data-l="TX 30D">{Number(p.tx_count_30d).toLocaleString()}</td>
+        <td data-l="TX All-Time" className={p.tx_all_time == null ? "dim" : undefined}>
+          {p.tx_all_time == null ? "—" : Number(p.tx_all_time).toLocaleString()}
+        </td>
+        <td data-l="Signers 30D">{Number(p.unique_signers_30d).toLocaleString()}</td>
+        <td
+          data-l="Success"
+          className={
+            p.success_rate_24h == null
+              ? "dim"
+              : p.success_rate_24h >= 0.9
+              ? "ok"
+              : "warn"
+          }
+        >
+          {p.success_rate_24h == null ? "—" : `${Math.round(p.success_rate_24h * 100)}%`}
+        </td>
+        <td data-l="7d Trend"><Sparkline data={p.sparkline_7d} /></td>
+        <td data-l="Last Active" className="dim">{timeAgo(p.last_active_at)}</td>
+      </tr>
+    );
   }
 
   return (
@@ -302,6 +422,13 @@ export default function Home() {
           >
             {watchlist ? "◉" : "○"} ⚠ Watchlist
           </button>
+          <button
+            className={`pill toggle ${byCluster ? "on" : ""}`}
+            onClick={() => setByCluster((v) => !v)}
+            title="Group programs under their ecosystem (cluster), ordered by total activity"
+          >
+            {byCluster ? "◉" : "○"} Group by cluster
+          </button>
         </div>
       </div>
 
@@ -332,77 +459,28 @@ export default function Home() {
               </tr>
             </thead>
             <tbody>
-              {rows.map((p, i) => (
-                <tr key={p.program_id} style={{ animationDelay: `${Math.min(i * 35, 700)}ms` }}>
-                  <td className="rank" data-l="Rank">{p.rank}</td>
-                  <td className="left" data-l="Program">
-                    <span className="pid">
-                      <a
-                        href={`${EXPLORER}/${p.program_id}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        title={p.program_id}
-                      >
-                        {p.name || short(p.program_id)}
-                      </a>
-                      <button className="copy" onClick={() => copyId(p.program_id)}>
-                        {copied === p.program_id ? "ok" : "copy"}
-                      </button>
-                      {registry[p.program_id]?.website && (
-                        <a className="site" href={registry[p.program_id].website} target="_blank" rel="noopener noreferrer">site ↗</a>
-                      )}
-                      {p.is_new && <span className="badge-new">NEW</span>}
-                    </span>
-                  </td>
-                  <td className="left" data-l="Category">
-                    <span className={`cat cat-${(p.category || "Unknown").toLowerCase()}`}>
-                      {p.category || "Unknown"}
-                    </span>
-                  </td>
-                  <td className="left" data-l="Upgrade">
-                    {p.infrastructure ? (
-                      <span className="up up-system">SYSTEM</span>
-                    ) : p.upgrade_state === "locked" ? (
-                      <span className="up up-locked">LOCKED</span>
-                    ) : p.upgrade_state === "upgradeable" ? (
-                      <span className="up up-open">UPGRADEABLE</span>
-                    ) : (
-                      <span className="dim">—</span>
-                    )}
-                  </td>
-                  <td className="left" data-l="Signals">
-                    <Signals p={p} />
-                  </td>
-                  <td data-l="Sonar Score">
-                    <span className="scorecell">
-                      <span className="scorebar">
-                        <i style={{ width: `${(Number(p.sonar_score) / maxScore) * 100}%` }} />
-                      </span>
-                      <span className="score">{Number(p.sonar_score).toFixed(0)}</span>
-                    </span>
-                  </td>
-                  <td data-l="TX 24h">{Number(p.tx_count_24h).toLocaleString()}</td>
-                  <td data-l="TX 30D">{Number(p.tx_count_30d).toLocaleString()}</td>
-                  <td data-l="TX All-Time" className={p.tx_all_time == null ? "dim" : undefined}>
-                    {p.tx_all_time == null ? "—" : Number(p.tx_all_time).toLocaleString()}
-                  </td>
-                  <td data-l="Signers 30D">{Number(p.unique_signers_30d).toLocaleString()}</td>
-                  <td
-                    data-l="Success"
-                    className={
-                      p.success_rate_24h == null
-                        ? "dim"
-                        : p.success_rate_24h >= 0.9
-                        ? "ok"
-                        : "warn"
-                    }
-                  >
-                    {p.success_rate_24h == null ? "—" : `${Math.round(p.success_rate_24h * 100)}%`}
-                  </td>
-                  <td data-l="7d Trend"><Sparkline data={p.sparkline_7d} /></td>
-                  <td data-l="Last Active" className="dim">{timeAgo(p.last_active_at)}</td>
-                </tr>
-              ))}
+              {groups
+                ? groups.reduce(
+                    (acc, g) => {
+                      acc.nodes.push(
+                        <tr key={`group:${g.name}`} className="group-row">
+                          <td colSpan={COLS.length} className="left">
+                            <span className="gname">{g.name}</span>
+                            <span className="gcount">
+                              {g.rows.length} program{g.rows.length === 1 ? "" : "s"}
+                            </span>
+                            <span className="gact" title="Combined TX 30D across the cluster">
+                              {nfmt(g.tx30d)} tx 30d
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                      for (const p of g.rows) acc.nodes.push(renderRow(p, acc.i++));
+                      return acc;
+                    },
+                    { nodes: [], i: 0 }
+                  ).nodes
+                : rows.map((p, i) => renderRow(p, i))}
             </tbody>
           </table>
         )}

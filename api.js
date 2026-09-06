@@ -4,6 +4,8 @@
 // ever reaches the database from the outside.
 
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const fastify = require('fastify')({ logger: true });
 const { Pool } = require('pg');
 
@@ -29,6 +31,48 @@ const SORT_COLUMNS = {
 const PROGRAM_ID_RE = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/; // base58, no 0OIl
 
 fastify.register(require('@fastify/cors'), { origin: true }); // public read-only API
+
+// ── Registry-only metadata (cluster, deployer) ────────────────────────────
+// `cluster` (ecosystem name, e.g. "XDEX") and `deployer` live only in
+// registry.json — they are not merged into sonar.programs by the aggregator.
+// Read the file here and stamp both onto every program row. The registry is
+// mixed-format: an entry is either an object ({ name, category, ... }) or a
+// bare string (just the name), so normalize before reading fields.
+const REGISTRY_PATH = path.join(__dirname, 'registry.json');
+const REGISTRY_TTL_MS = 60_000;
+let registryCache = { at: 0, meta: new Map() };
+
+function normalizeRegistryEntry(v) {
+  if (typeof v === 'string') return { name: v };
+  return v && typeof v === 'object' ? v : {};
+}
+
+function registryMeta() {
+  const now = Date.now();
+  if (now - registryCache.at < REGISTRY_TTL_MS) return registryCache.meta;
+  const meta = new Map();
+  try {
+    const reg = JSON.parse(fs.readFileSync(REGISTRY_PATH, 'utf8'));
+    for (const [programId, raw] of Object.entries(reg)) {
+      if (programId.startsWith('_')) continue;
+      const e = normalizeRegistryEntry(raw);
+      meta.set(programId, {
+        cluster: typeof e.cluster === 'string' && e.cluster ? e.cluster : null,
+        deployer: typeof e.deployer === 'string' && e.deployer ? e.deployer : null,
+      });
+    }
+    registryCache = { at: now, meta };
+  } catch (e) {
+    fastify.log.warn(`registry.json unreadable, cluster/deployer omitted: ${e.message}`);
+    registryCache = { at: now, meta: registryCache.meta }; // keep last good copy
+  }
+  return registryCache.meta;
+}
+
+function withRegistryMeta(row) {
+  const m = registryMeta().get(row.program_id);
+  return { ...row, cluster: m?.cluster ?? null, deployer: m?.deployer ?? null };
+}
 
 const PROGRAM_FIELDS = `
   program_id, first_seen_slot, first_seen_at, last_active_at,
@@ -81,7 +125,7 @@ fastify.get('/api/programs', async (req, reply) => {
     params.slice(0, params.length - 2)
   );
 
-  return { total: cnt[0].total, limit, offset, programs: rows };
+  return { total: cnt[0].total, limit, offset, programs: rows.map(withRegistryMeta) };
 });
 
 // GET /api/programs/:id — single program detail
@@ -102,7 +146,7 @@ fastify.get('/api/programs/:id', async (req, reply) => {
     `SELECT COUNT(*)::int + 1 AS rank FROM sonar.programs WHERE sonar_score > $1`,
     [rows[0].sonar_score]
   );
-  return { ...rows[0], rank: rank[0].rank };
+  return { ...withRegistryMeta(rows[0]), rank: rank[0].rank };
 });
 
 // GET /api/programs/:id/history?days=30 — daily sparkline data
@@ -156,6 +200,9 @@ fastify.get('/api/agents/bootstrap', async (req, reply) => {
       category: r.category,
     };
     if (r.website) p.website = r.website;
+    const rm = registryMeta().get(r.program_id);
+    if (rm?.cluster) p.cluster = rm.cluster;
+    if (rm?.deployer) p.deployer = rm.deployer;
     p.infrastructure = r.infrastructure === true;
     p.first_tx_at = r.first_tx_at;
     p.tx_all_time = r.tx_all_time;

@@ -506,3 +506,48 @@ pre.code {
 
 /* The wordmark doubles as the home link on subpages */
 a.wordmark:hover .sonar { color: var(--text); }
+
+/* ── Clusters (ecosystem grouping) ──────────────── */
+/* Subtle tag beside the program name; only rendered when a cluster exists. */
+.cluster-tag {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  padding: 0 5px;
+  line-height: 15px;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+tbody tr:hover .cluster-tag { color: var(--text); border-color: var(--ping-dim); }
+
+/* Section header per cluster when "Group by cluster" is on. */
+tbody tr.group-row { animation: none; }
+tbody tr.group-row td {
+  background: var(--surface-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 7px 12px;
+  white-space: nowrap;
+}
+tbody tr.group-row:hover td { background: var(--surface-2); }
+.group-row .gname {
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ping);
+  font-weight: 600;
+}
+.group-row .gcount { margin-left: 10px; color: var(--muted); font-size: 11px; }
+.group-row .gact { margin-left: 10px; color: var(--muted); font-size: 11px; opacity: 0.8; }
+.group-row .gact::before { content: "·"; margin-right: 10px; }
+
+@media (max-width: 768px) {
+  tbody tr.group-row { background: var(--surface-2); padding: 6px 12px; margin-bottom: 6px; }
+  tbody tr.group-row td { border: none; padding: 0; white-space: normal; }
+  tbody tr.group-row td::before { content: none; }
+}
