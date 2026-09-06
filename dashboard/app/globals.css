@@ -182,6 +182,8 @@ thead th {
   user-select: none;
 }
 thead th:hover { color: var(--text); }
+thead th.nosort { cursor: default; }
+thead th.nosort:hover { color: var(--muted); }
 thead th.on { color: var(--ping); }
 thead th.left { text-align: left; }
 thead th .arrow { font-size: 9px; }

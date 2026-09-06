@@ -23,6 +23,13 @@ const COLS = [
   { key: "last_active_at", label: "Last Active", left: false },
 ];
 
+// Columns sorted as text rather than numbers. Program sorts by display name.
+const TEXT_SORT = {
+  program_id: (p) => p.name || p.program_id,
+  category: (p) => p.category || "Unknown",
+  upgrade_state: (p) => p.upgrade_state || "",
+};
+
 function timeAgo(iso) {
   if (!iso) return "—";
   const s = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
@@ -311,13 +318,24 @@ export default function Home() {
         (!watchlist || onWatchlist(p))
     );
     const { key, dir } = sort;
+    const sign = dir === "asc" ? 1 : -1;
     arr.sort((a, b) => {
-      let av = a[key], bv = b[key];
-      if (key === "last_active_at") { av = new Date(av || 0).getTime(); bv = new Date(bv || 0).getTime(); }
-      else if (key !== "program_id") { av = Number(av) || 0; bv = Number(bv) || 0; }
-      if (av < bv) return dir === "asc" ? -1 : 1;
-      if (av > bv) return dir === "asc" ? 1 : -1;
-      return 0;
+      let av, bv;
+      if (key === "last_active_at") {
+        av = new Date(a[key] || 0).getTime();
+        bv = new Date(b[key] || 0).getTime();
+      } else if (TEXT_SORT[key]) {
+        // Text columns compare case-insensitively; "desc" means Z→A.
+        av = TEXT_SORT[key](a).toLowerCase();
+        bv = TEXT_SORT[key](b).toLowerCase();
+      } else {
+        av = Number(a[key]) || 0;
+        bv = Number(b[key]) || 0;
+      }
+      if (av < bv) return -sign;
+      if (av > bv) return sign;
+      // Tiebreak on Sonar score so equal values keep a stable, meaningful order.
+      return (Number(b.sonar_score) || 0) - (Number(a.sonar_score) || 0);
     });
     return arr;
   }, [programs, sort, cat, appsOnly, watchlist]);
@@ -332,7 +350,7 @@ export default function Home() {
   );
 
   function clickSort(key) {
-    if (key === "sparkline" || key === "signals") return;
+    if (COLS.find((c) => c.key === key)?.nosort) return;
     if (key === "rank") key = "sonar_score";
     setSort((s) =>
       s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" }
@@ -576,7 +594,7 @@ export default function Home() {
                   return (
                     <th
                       key={c.key}
-                      className={`${c.left ? "left " : ""}${active ? "on" : ""}`}
+                      className={`${c.left ? "left " : ""}${c.nosort ? "nosort " : ""}${active ? "on" : ""}`}
                       onClick={() => clickSort(c.key)}
                     >
                       {c.label}{" "}
