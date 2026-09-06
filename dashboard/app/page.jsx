@@ -329,6 +329,10 @@ export default function Home() {
         av = TEXT_SORT[key](a).toLowerCase();
         bv = TEXT_SORT[key](b).toLowerCase();
       } else {
+        // Null metrics (e.g. tx_all_time on system/infra programs) always
+        // sort last, in either direction; real zeros still compare as 0.
+        const an = a[key] == null, bn = b[key] == null;
+        if (an !== bn) return an ? 1 : -1;
         av = Number(a[key]) || 0;
         bv = Number(b[key]) || 0;
       }
@@ -355,6 +359,14 @@ export default function Home() {
     setSort((s) =>
       s.key === key ? { key, dir: s.dir === "desc" ? "asc" : "desc" } : { key, dir: "desc" }
     );
+  }
+
+  // "Top volume" is a shortcut for sorting by TX All-Time descending. It is
+  // derived from the sort state, so the header arrow agrees with the pill and
+  // clicking any other column header naturally switches it off.
+  const topVolume = sort.key === "tx_all_time" && sort.dir === "desc";
+  function toggleTopVolume() {
+    setSort(topVolume ? { key: "sonar_score", dir: "desc" } : { key: "tx_all_time", dir: "desc" });
   }
 
   function copyId(id) {
@@ -567,6 +579,13 @@ export default function Home() {
             title="Show only programs with 2+ objective on-chain signals (or closed accounts)"
           >
             {watchlist ? "◉" : "○"} ⚠ Watchlist
+          </button>
+          <button
+            className={`pill toggle ${topVolume ? "on" : ""}`}
+            onClick={toggleTopVolume}
+            title="Sort by all-time transaction count, highest first (programs without an all-time count sort last)"
+          >
+            {topVolume ? "◉" : "○"} Top volume
           </button>
           <button
             className={`pill toggle ${byDeployer ? "on" : ""}`}
