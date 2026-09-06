@@ -53,24 +53,57 @@ function clusterOf(p) {
   return typeof c === "string" && c ? c : null;
 }
 
-const UNCLUSTERED = "Unclustered";
+// Deployer = the wallet that deployed the program. Stamped by the API from
+// the registry; fall back to the bundled registry like clusterOf.
+function deployerOf(p) {
+  const d = p.deployer || regMeta(p.program_id).deployer;
+  return typeof d === "string" && d ? d : null;
+}
 
-// Group rows by cluster. Clusters are ordered by total activity (TX 30D, then
-// TX 24h as tiebreak); programs without a cluster land in a final
-// "Unclustered" section. Rows keep the table's current sort within a group.
-function groupByCluster(rows) {
+const SOLO_KEY = "__solo__";
+const SOLO_LABEL = "Solo / Unknown deployer";
+
+// Group rows by deployer address. Each group is labelled with the cluster
+// name if that deployer has one (most common cluster among its programs),
+// otherwise a shortened address. Groups are ordered by total activity
+// (TX 30D, then TX 24h as tiebreak). Deployers with a single program and
+// programs with no deployer land in a final "Solo / Unknown deployer"
+// section. Rows keep the table's current sort within a group.
+function groupByDeployer(rows) {
   const groups = new Map();
-  for (const p of rows) {
-    const key = clusterOf(p) || UNCLUSTERED;
-    if (!groups.has(key)) groups.set(key, { name: key, rows: [], tx30d: 0, tx24h: 0 });
+  const add = (key, p) => {
+    if (!groups.has(key)) groups.set(key, { key, rows: [], tx30d: 0, tx24h: 0, clusters: new Map() });
     const g = groups.get(key);
     g.rows.push(p);
     g.tx30d += Number(p.tx_count_30d) || 0;
     g.tx24h += Number(p.tx_count_24h) || 0;
+    const c = clusterOf(p);
+    if (c) g.clusters.set(c, (g.clusters.get(c) || 0) + 1);
+  };
+  for (const p of rows) add(deployerOf(p) || SOLO_KEY, p);
+
+  // Fold single-program deployers into the solo section, preserving the
+  // table's sort order among them.
+  const solo = { key: SOLO_KEY, label: SOLO_LABEL, rows: [], tx30d: 0, tx24h: 0 };
+  const out = [];
+  for (const g of groups.values()) {
+    if (g.key === SOLO_KEY || g.rows.length < 2) {
+      for (const p of g.rows) solo.rows.push(p);
+      solo.tx30d += g.tx30d;
+      solo.tx24h += g.tx24h;
+      continue;
+    }
+    const top = [...g.clusters.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0];
+    g.label = top ? top[0] : `${g.key.slice(0, 8)}…`;
+    g.title = g.key;
+    out.push(g);
   }
-  const out = [...groups.values()].filter((g) => g.name !== UNCLUSTERED);
-  out.sort((a, b) => b.tx30d - a.tx30d || b.tx24h - a.tx24h || a.name.localeCompare(b.name));
-  if (groups.has(UNCLUSTERED)) out.push(groups.get(UNCLUSTERED));
+  out.sort((a, b) => b.tx30d - a.tx30d || b.tx24h - a.tx24h || a.label.localeCompare(b.label));
+  if (solo.rows.length) {
+    const order = new Map(rows.map((p, i) => [p.program_id, i]));
+    solo.rows.sort((a, b) => order.get(a.program_id) - order.get(b.program_id));
+    out.push(solo);
+  }
   return out;
 }
 
@@ -199,7 +232,7 @@ export default function Home() {
   const [cat, setCat] = useState("All");
   const [appsOnly, setAppsOnly] = useState(true);
   const [watchlist, setWatchlist] = useState(false);
-  const [byCluster, setByCluster] = useState(false);
+  const [byDeployer, setByDeployer] = useState(false);
 
   async function load() {
     try {
@@ -247,7 +280,7 @@ export default function Home() {
     return arr;
   }, [programs, sort, cat, appsOnly, watchlist]);
 
-  const groups = useMemo(() => (byCluster && rows ? groupByCluster(rows) : null), [rows, byCluster]);
+  const groups = useMemo(() => (byDeployer && rows ? groupByDeployer(rows) : null), [rows, byDeployer]);
 
   const maxScore = useMemo(
     () => (programs || []).reduce((m, p) => Math.max(m, Number(p.sonar_score) || 0), 1),
@@ -423,11 +456,11 @@ export default function Home() {
             {watchlist ? "◉" : "○"} ⚠ Watchlist
           </button>
           <button
-            className={`pill toggle ${byCluster ? "on" : ""}`}
-            onClick={() => setByCluster((v) => !v)}
-            title="Group programs under their ecosystem (cluster), ordered by total activity"
+            className={`pill toggle ${byDeployer ? "on" : ""}`}
+            onClick={() => setByDeployer((v) => !v)}
+            title="Group programs by deployer wallet, ordered by total activity"
           >
-            {byCluster ? "◉" : "○"} Group by cluster
+            {byDeployer ? "◉" : "○"} Group by deployer
           </button>
         </div>
       </div>
@@ -463,13 +496,13 @@ export default function Home() {
                 ? groups.reduce(
                     (acc, g) => {
                       acc.nodes.push(
-                        <tr key={`group:${g.name}`} className="group-row">
+                        <tr key={`group:${g.key}`} className="group-row">
                           <td colSpan={COLS.length} className="left">
-                            <span className="gname">{g.name}</span>
+                            <span className="gname" title={g.title}>{g.label}</span>
                             <span className="gcount">
                               {g.rows.length} program{g.rows.length === 1 ? "" : "s"}
                             </span>
-                            <span className="gact" title="Combined TX 30D across the cluster">
+                            <span className="gact" title="Combined TX 30D across the group">
                               {nfmt(g.tx30d)} tx 30d
                             </span>
                           </td>
